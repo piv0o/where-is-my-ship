@@ -1,17 +1,17 @@
 modLoader = "javafml"
-loaderVersion = "[47,)"
+loaderVersion = "[40,)"
 #issueTrackerURL = ""
 license = "Insert License Here"
 
 [[mods]]
 modId = "wims"
 version = "${version}"
-displayName = "Where is my ship"
-authors = "Me!"
+displayName = "Valkrien Skies X Journeymap"
+authors = "Pivoo"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+Adds icons to Journeymap for Valkrien Skies Ships.
 '''
-#logoFile = ""
+logoFile = "icon.png"
 
 [[dependencies.wims]]
 modId = "forge"
@@ -30,6 +30,13 @@ side = "BOTH"
 [[dependencies.wims]]
 modId = "architectury"
 mandatory = true
-versionRange = "[9.2.14,)"
+versionRange = "[9.1.12,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.wims]]
+modId = "valkyrienskies"
+mandatory = true
+versionRange = "[2.4.0,)"
 ordering = "AFTER"
 side = "BOTH"
