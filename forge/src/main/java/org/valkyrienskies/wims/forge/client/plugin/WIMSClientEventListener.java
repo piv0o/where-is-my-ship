@@ -1,11 +1,18 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 import journeymap.client.api.IClientAPI;
+import org.valkyrienskies.wims.ShipMapPacket;
+
+import java.util.ArrayList;
 
 public class WIMSClientEventListener {
 
-    private final IClientAPI jmAPI;
+    private static IClientAPI jmAPI;
+
+    private static ArrayList<ShipMapPacket> ships;
 
     WIMSClientEventListener(IClientAPI jmAPI){
-        this.jmAPI = jmAPI;
+        WIMSClientEventListener.jmAPI = jmAPI;
+
+
     }
 }

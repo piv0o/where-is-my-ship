@@ -1,23 +1,24 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 
+import com.mojang.blaze3d.platform.NativeImage;
+import dev.architectury.networking.NetworkManager;
 import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.IClientAPI;
-import journeymap.client.api.event.DeathWaypointEvent;
-import journeymap.client.api.event.WaypointEvent;
-import journeymap.client.api.event.RegistryEvent;
-import journeymap.client.api.display.DisplayType;
 
-import static journeymap.client.api.event.ClientEvent.Type.DEATH_WAYPOINT;
 import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
 import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
-import static journeymap.client.api.event.ClientEvent.Type.REGISTRY;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import org.valkyrienskies.wims.ShipImagePacket;
+import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.forge.WIMSModForge;
 
@@ -28,6 +29,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     // Forge listener reference
     private static WIMSJourneyMapPlugin INSTANCE;
     private WIMSClientEventListener eventListener;
+
+    public ArrayList<ShipMapPacket> ships;
+    public HashMap<String, ResourceLocation> images = new HashMap<>();
+
+    private boolean isMappingStarted;
 
     public WIMSJourneyMapPlugin() {
         INSTANCE = this;
@@ -43,7 +49,30 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
         eventListener = new WIMSClientEventListener(jmAPI);
         MinecraftForge.EVENT_BUS.register(eventListener);
-        this.jmAPI.subscribe(getModId(), EnumSet.of(DEATH_WAYPOINT, MAPPING_STARTED, MAPPING_STOPPED, REGISTRY));
+        this.jmAPI.subscribe(getModId(), EnumSet.of(MAPPING_STARTED, MAPPING_STOPPED));
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_PACKET_ID, WIMSJourneyMapPlugin::receiveShips);
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_IMAGE_PACKET_ID, WIMSJourneyMapPlugin::receiveImage);
+    }
+
+
+    public static void onClientTick() {
+        if (getInstance().ships == null || !getInstance().isMappingStarted) return;
+        var jmAPI = getInstance().jmAPI;
+//        jmAPI.removeAll(WIMSMod.MOD_ID);
+        for (ShipMapPacket ship : getInstance().ships) {
+            WIMSImageOverlay.CreateImage(ship, jmAPI);
+
+        }
+    }
+
+    private static void receiveShips(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
+        WIMSJourneyMapPlugin.INSTANCE.ships = ShipMapPacket.fromBuffer(buf);
+    }
+
+    private static void receiveImage(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
+        var image = ShipImagePacket.fromBuffer(buf);
+        WIMSModForge.LogInfo(String.format("image for %s: %s %s", image.slug(), image.width(), image.height()));
+        WIMSJourneyMapPlugin.INSTANCE.images.put(image.slug(), WIMSImageOverlay.RegisterResource(image,WIMSImageOverlay.convertBytes(image)));
     }
 
     @Override
@@ -62,77 +91,19 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 case MAPPING_STOPPED:
                     onMappingStopped(event);
                     break;
-                case WAYPOINT:
-                    onWaypointEvent((WaypointEvent) event);
-                    break;
-                case DEATH_WAYPOINT:
-                    onDeathpoint((DeathWaypointEvent) event);
-                    break;
-                case REGISTRY:
-                    RegistryEvent registryEvent = (RegistryEvent) event;
-                    switch (registryEvent.getRegistryType()) {
-                        case OPTIONS:
-//                            this.clientProperties = new ClientProperties();
-                            break;
-                        case INFO_SLOT:
-                            ((RegistryEvent.InfoSlotRegistryEvent) registryEvent)
-                                    .register(getModId(), "Current Millis", 1000, () -> "Millis: " + System.currentTimeMillis());
-                            ((RegistryEvent.InfoSlotRegistryEvent) registryEvent)
-                                    .register(getModId(), "Current Ticks", 10, WIMSJourneyMapPlugin::getTicks);
-                            break;
-                    }
-                    break;
             }
         } catch (Throwable t) {
-//            WIMSModForge.LOGGER.error(t.getMessage(), t);
+            WIMSModForge.LogInfo(t.getMessage());
         }
     }
 
-    private static String getTicks() {
-        return "Ticks: " + Minecraft.getInstance().gui.getGuiTicks();
-    }
-
-    private void onDeathpoint(DeathWaypointEvent event) {
-        // Create a bunch of random Image Overlays around the player
-        if (jmAPI.playerAccepts(getModId(), DisplayType.Image))
-        {
-            BlockPos pos = Minecraft.getInstance().player.blockPosition();
-            SampleImageOverlayFactory.create(jmAPI, pos, 5, 256, 128);
-        }
-
-        // Create a bunch of random Marker Overlays around the player
-        if (jmAPI.playerAccepts(getModId(), DisplayType.Marker))
-        {
-            net.minecraft.core.BlockPos pos = Minecraft.getInstance().player.blockPosition();
-//            SampleMarkerOverlayFactory.create(jmAPI, pos, 64, 256);
-        }
-
-        // Create a waypoint for the player's bed location.  The ForgeEventListener
-        // will keep it updated if the player sleeps elsewhere.
-        if (jmAPI.playerAccepts(getModId(), DisplayType.Waypoint))
-        {
-            BlockPos pos = Minecraft.getInstance().player.getSleepingPos().orElse(new BlockPos(0, 0, 0));
-//            SampleWaypointFactory.createBedWaypoint(jmAPI, pos, event.dimension);
-        }
-
-        // Create some random complex polygon overlays
-        if (jmAPI.playerAccepts(getModId(), DisplayType.Polygon))
-        {
-            BlockPos pos = Minecraft.getInstance().player.blockPosition();
-//            SampleComplexPolygonOverlayFactory.create(jmAPI, pos, event.dimension, 256);
-        }
-    }
-
-    private void onWaypointEvent(WaypointEvent event) {
-
-    }
 
     private void onMappingStopped(ClientEvent event) {
-
+        this.isMappingStarted = false;
     }
 
     private void onMappingStarted(ClientEvent event) {
-
+        this.isMappingStarted = true;
     }
 }
 

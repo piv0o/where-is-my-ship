@@ -1,5 +1,6 @@
 package org.valkyrienskies.wims.forge;
 
+import com.mojang.logging.LogUtils;
 import dev.architectury.platform.forge.EventBuses;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -11,8 +12,10 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.slf4j.Logger;
 import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.forge.client.WIMSModForgeClient;
+
 
 @Mod(WIMSMod.MOD_ID)
 public class WIMSModForge {
@@ -22,6 +25,8 @@ public class WIMSModForge {
     private final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, WIMSMod.MOD_ID);
     private final DeferredRegister<?> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, WIMSMod.MOD_ID);
     private final DeferredRegister<?> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, WIMSMod.MOD_ID);
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     // Put RegistryObjects here:
 
@@ -53,6 +58,18 @@ public class WIMSModForge {
         public static void init(FMLCommonSetupEvent event) {
             // Put anything initialized on forge-side here.
         }
+    }
+
+    public static void LogInfo(String msg){
+        LOGGER.info(msg);
+    }
+
+    public static void LogError(String msg){
+        LOGGER.error(msg);
+    }
+
+    public static void LogWarn(String msg){
+        LOGGER.warn(msg);
     }
 
     private void init(FMLCommonSetupEvent event) {

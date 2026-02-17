@@ -1,0 +1,95 @@
+package org.valkyrienskies.wims;
+
+import io.netty.buffer.Unpooled;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.valkyrienskies.core.api.ships.ServerShip;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Objects;
+
+public record ShipMapPacket(
+        String slug,
+        String dim,
+        BlockPos worldPos,
+        BlockPos shipPos1,
+        BlockPos shipPos2,
+        double rotX,
+        double rotY,
+        double rotZ
+
+) {
+    public static FriendlyByteBuf toBuffer(Iterable<ShipMapPacket> markers) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        for (ShipMapPacket marker : markers) {
+            buf.writeUtf(marker.slug);
+            buf.writeUtf(marker.dim);
+            buf.writeBlockPos(marker.worldPos);
+            buf.writeBlockPos(marker.shipPos1);
+            buf.writeBlockPos(marker.shipPos2);
+            buf.writeDouble(marker.rotX);
+            buf.writeDouble(marker.rotY);
+            buf.writeDouble(marker.rotZ);
+        }
+        return buf;
+    }
+
+    public static ShipMapPacket fromShip(ServerShip ship, ServerLevel level){
+        var shipAABB = ship.getShipAABB();
+        var rotation = new Vector3d();
+        ship.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
+        byte[] img = null;
+        if (shipAABB != null) {
+            return new ShipMapPacket(
+                    ship.getSlug(),
+                    level.toString(),
+                    VectorToBlockPos(ship.getKinematics().getPosition()),
+                    new BlockPos(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ()),
+                    new BlockPos(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ()),
+                    rotation.x,
+                    rotation.y,
+                    rotation.z
+            );
+        } else {
+            return null;
+        }
+    }
+
+
+    private static BlockPos VectorToBlockPos(Vector3dc vec){
+        return new BlockPos((int) vec.x(), (int) vec.y(), (int) vec.z());
+    }
+
+    public int getWidth(){
+        return shipPos2.getX() - shipPos1.getX();
+    }
+
+    public int getHeight(){
+        return shipPos2.getZ() - shipPos1.getZ();
+    }
+
+    public BlockPos getWorldPos2() {
+        return worldPos.offset(shipPos2.subtract(shipPos1));
+    }
+
+    public static ArrayList<ShipMapPacket> fromBuffer(FriendlyByteBuf buf) {
+        ArrayList<ShipMapPacket> out = new ArrayList<ShipMapPacket>();
+        while (buf.readableBytes() > 0) {
+            out.add(new ShipMapPacket(
+                    buf.readUtf(),
+                    buf.readUtf(),
+                    buf.readBlockPos(),
+                    buf.readBlockPos(),
+                    buf.readBlockPos(),
+                    buf.readDouble(),
+                    buf.readDouble(),
+                    buf.readDouble()
+            ));
+        }
+        return  out;
+    }
+}
