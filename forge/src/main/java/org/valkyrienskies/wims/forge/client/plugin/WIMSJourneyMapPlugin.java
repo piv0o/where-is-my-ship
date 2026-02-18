@@ -1,6 +1,5 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import dev.architectury.networking.NetworkManager;
 import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.display.ImageOverlay;
@@ -14,14 +13,12 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
-import org.valkyrienskies.wims.forge.WIMSModForge;
 
 @journeymap.client.api.ClientPlugin
 public class WIMSJourneyMapPlugin implements IClientPlugin {
@@ -34,6 +31,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     public ArrayList<ShipMapPacket> ships;
     public HashMap<String, ImageOverlay> shipOverlays = new HashMap<>();
     public HashMap<String, ResourceLocation> images = new HashMap<>();
+    public ArrayList<String> OverlaysToRemove = new ArrayList<>();
 
     private boolean isMappingStarted;
 
@@ -60,7 +58,6 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     public static void onClientTick() {
         if (getInstance().ships == null || !getInstance().isMappingStarted) return;
         var jmAPI = getInstance().jmAPI;
-//        jmAPI.removeAll(WIMSMod.MOD_ID);
         for (ShipMapPacket ship : getInstance().ships) {
             WIMSImageOverlay.updateImage(ship, jmAPI);
 
@@ -72,19 +69,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     }
 
     private static void receiveImage(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
-        var image = ShipImagePacket.fromBuffer(buf);
-//        WIMSModForge.LogInfo(String.format("image for %s: %s %s | %s %s", image.slug(), image.width(), image.height(), image.data().length, image.dataLength()));
+        ShipImagePacket image = ShipImagePacket.fromBuffer(buf);
         getInstance().images.put(image.slug(), WIMSImageOverlay.RegisterResource(image, WIMSImageOverlay.convertBytes(image)));
         if (getInstance().shipOverlays.containsKey(image.slug())) {
-//            WIMSModForge.LogInfo(image.slug() + " updated Image");
-//            var oldImage = getInstance().shipOverlays.get(image.slug()).getImage().getImage();
-            getInstance().shipOverlays.get(image.slug()).setImage(WIMSImageOverlay.getShipImage(image.slug(), image.width(), image.height()));
-            try {
-                getInstance().jmAPI.show(getInstance().shipOverlays.get(image.slug()));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-//            if (oldImage != null) oldImage.close();
+                getInstance().jmAPI.remove(getInstance().shipOverlays.get(image.slug()));
+                getInstance().shipOverlays.remove(image.slug());
         }
     }
 

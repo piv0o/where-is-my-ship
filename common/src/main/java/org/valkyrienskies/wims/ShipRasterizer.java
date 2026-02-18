@@ -11,8 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.zip.DeflaterOutputStream;
 
 public class ShipRasterizer {
-
-
     public static byte[] generateImageData(ServerShip ship, ServerLevel level) {
         var shipAABB = ship.getShipAABB();
         if (shipAABB == null) return null;
@@ -26,14 +24,13 @@ public class ShipRasterizer {
         int width = maxX - minX + 1;
         int height = maxZ - minZ + 1;
 
-//        NativeImage img = new NativeImage(NativeImage.Format.RGBA, width, height, false);
         byte[] data = new byte[width * height * 4];
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        int r = 0x00;
-        int g = 0x00;
-        int b = 0x00;
-        int a = 0x00;
+        int r;
+        int g;
+        int b;
+        int a;
         int i = 0;
         for (int z = minZ; z < maxZ; z++) {
             for (int x = minX; x < maxX; x++) {
@@ -54,9 +51,8 @@ public class ShipRasterizer {
                         break;
                     }
                 }
-//                img.setPixelRGBA(x - minX, z - minZ, rgba);
                 int index = i * 4;
-                WIMSMod.LogInfo(String.format("server pixel %s %s %s | %s %s %s %s", x - minX, (z - minZ), index, r, g, b, a));
+//                WIMSMod.LogInfo(String.format("server pixel %s %s %s | %s %s %s %s", x - minX, (z - minZ), index, r, g, b, a));
                 data[index] = (byte) r; // R
                 data[index + 1] = (byte) g; // G
                 data[index + 2] = (byte) b; // B
@@ -65,17 +61,5 @@ public class ShipRasterizer {
             }
         }
         return data;
-    }
-
-    private static byte[] deflate(byte[] raw) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (DeflaterOutputStream def = new DeflaterOutputStream(baos)) {
-                def.write(raw);
-            }
-            return baos.toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

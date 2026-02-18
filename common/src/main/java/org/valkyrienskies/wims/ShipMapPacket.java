@@ -22,6 +22,7 @@ public record ShipMapPacket(
         double rotY,
         double rotZ
 
+
 ) {
     public static FriendlyByteBuf toBuffer(Iterable<ShipMapPacket> markers) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -87,6 +88,21 @@ public record ShipMapPacket(
                 Math.round((float) dimensions.getY() / 2),
                 Math.round((float) dimensions.getZ() / 2)
         );
+    }
+
+    public int getTrueRotation() {
+        var cx = Math.cos(rotX);
+        var cy = Math.cos(rotY);
+        var cz = Math.cos(rotZ);
+
+        var sx = Math.sin(rotX);
+        var sy = Math.sin(rotY);
+        var sz = Math.sin(rotZ);
+
+        var fx = cy * cz;
+        var fz = sx * sz - cx * sy * cz;
+        var ang = (Math.atan2(fz, fx) * 180 / Math.PI + 360) % 360;
+        return (int) Math.round(ang);
     }
 
     public BlockPos getWorldPos1_dep() {
