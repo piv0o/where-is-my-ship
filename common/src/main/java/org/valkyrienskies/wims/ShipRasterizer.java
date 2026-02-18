@@ -30,29 +30,41 @@ public class ShipRasterizer {
         byte[] data = new byte[width * height * 4];
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        int rgba = 0x00000000;
+        int r = 0x00;
+        int g = 0x00;
+        int b = 0x00;
+        int a = 0x00;
+        int i = 0;
         for (int z = minZ; z < maxZ; z++) {
             for (int x = minX; x < maxX; x++) {
-                rgba = 0x00000000;
+                r = 0x00;
+                g = 0x00;
+                b = 0x00;
+                a = 0x00;
                 for (int y = maxY; y >= minY; y--) {
                     pos.set(x, y, z);
                     BlockState state = level.getBlockState(pos);
                     if (!state.isAir() && !state.getFluidState().isSource()) {
                         MapColor mc = state.getMapColor(level, pos);
                         int rgb = mc.col; // or mc.color depending on mappings
-                        rgba = 0xFF000000 | (rgb & 0x00FFFFFF);
+                        r = (rgb >> 16) & 0xFF;
+                        g = (rgb >> 8) & 0xFF;
+                        b = rgb & 0xff;
+                        a = 0xff;
                         break;
                     }
                 }
 //                img.setPixelRGBA(x - minX, z - minZ, rgba);
-                int index = ((z - minZ) * width + (x - minX)) * 4;
-                data[index] = (byte) ((rgba >> 16) & 0xFF); // R
-                data[index + 1] = (byte) ((rgba >> 8) & 0xFF); // G
-                data[index + 2] = (byte) ((rgba) & 0xFF); // B
-                data[index + 3] = (byte) ((rgba >> 24) & 0xFF); // A
+                int index = i * 4;
+                WIMSMod.LogInfo(String.format("server pixel %s %s %s | %s %s %s %s", x - minX, (z - minZ), index, r, g, b, a));
+                data[index] = (byte) r; // R
+                data[index + 1] = (byte) g; // G
+                data[index + 2] = (byte) b; // B
+                data[index + 3] = (byte) a; // A
+                i++;
             }
         }
-        return deflate(data);
+        return data;
     }
 
     private static byte[] deflate(byte[] raw) {

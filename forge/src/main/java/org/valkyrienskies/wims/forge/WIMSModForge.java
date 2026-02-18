@@ -26,7 +26,8 @@ public class WIMSModForge {
     private final DeferredRegister<?> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, WIMSMod.MOD_ID);
     private final DeferredRegister<?> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, WIMSMod.MOD_ID);
 
-    private static final Logger LOGGER = LogUtils.getLogger();
+
+
 
     // Put RegistryObjects here:
 
@@ -58,18 +59,6 @@ public class WIMSModForge {
         public static void init(FMLCommonSetupEvent event) {
             // Put anything initialized on forge-side here.
         }
-    }
-
-    public static void LogInfo(String msg){
-        LOGGER.info(msg);
-    }
-
-    public static void LogError(String msg){
-        LOGGER.error(msg);
-    }
-
-    public static void LogWarn(String msg){
-        LOGGER.warn(msg);
     }
 
     private void init(FMLCommonSetupEvent event) {

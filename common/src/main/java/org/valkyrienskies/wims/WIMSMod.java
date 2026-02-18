@@ -1,9 +1,11 @@
 package org.valkyrienskies.wims;
 
+import com.mojang.logging.LogUtils;
 import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import org.slf4j.Logger;
 import org.valkyrienskies.core.api.ships.ServerShip;
 import org.valkyrienskies.core.internal.ships.VsiQueryableShipData;
 import org.valkyrienskies.core.internal.world.VsiServerShipWorld;
@@ -17,6 +19,21 @@ public class WIMSMod {
 
     public static final ResourceLocation SHIPS_PACKET_ID = new ResourceLocation(WIMSMod.MOD_ID, "ships_packet_id");
     public static final ResourceLocation SHIPS_IMAGE_PACKET_ID = new ResourceLocation(WIMSMod.MOD_ID, "ships_image_packet_id");
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+
+    public static void LogInfo(String msg){
+        LOGGER.info(msg);
+    }
+
+    public static void LogError(String msg){
+        LOGGER.error(msg);
+    }
+
+    public static void LogWarn(String msg){
+        LOGGER.warn(msg);
+    }
 
     public static int timer = 0;
 

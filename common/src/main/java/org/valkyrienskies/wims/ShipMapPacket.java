@@ -38,7 +38,7 @@ public record ShipMapPacket(
         return buf;
     }
 
-    public static ShipMapPacket fromShip(ServerShip ship, ServerLevel level){
+    public static ShipMapPacket fromShip(ServerShip ship, ServerLevel level) {
         var shipAABB = ship.getShipAABB();
         var rotation = new Vector3d();
         ship.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
@@ -60,20 +60,41 @@ public record ShipMapPacket(
     }
 
 
-    private static BlockPos VectorToBlockPos(Vector3dc vec){
-        return new BlockPos((int) vec.x(), (int) vec.y(), (int) vec.z());
+    private static BlockPos VectorToBlockPos(Vector3dc vec) {
+        return new BlockPos((int) Math.round(vec.x()), (int) Math.round(vec.y()), (int) Math.round((vec.z())));
     }
 
-    public int getWidth(){
+    public int getWidth() {
         return shipPos2.getX() - shipPos1.getX();
     }
 
-    public int getHeight(){
+    public int getHeight() {
         return shipPos2.getZ() - shipPos1.getZ();
     }
 
     public BlockPos getWorldPos2() {
         return worldPos.offset(shipPos2.subtract(shipPos1));
+    }
+
+    public BlockPos GetDimensions() {
+        return shipPos2.subtract(shipPos1);
+    }
+
+    public BlockPos GetHalfDimsions() {
+        var dimensions = GetDimensions();
+        return new BlockPos(
+                Math.round((float) dimensions.getX() / 2),
+                Math.round((float) dimensions.getY() / 2),
+                Math.round((float) dimensions.getZ() / 2)
+        );
+    }
+
+    public BlockPos getWorldPos1_dep() {
+        return worldPos.subtract(GetHalfDimsions());
+    }
+
+    public BlockPos getWorldPos2_dep() {
+        return worldPos.offset(GetHalfDimsions());
     }
 
     public static ArrayList<ShipMapPacket> fromBuffer(FriendlyByteBuf buf) {
@@ -90,6 +111,6 @@ public record ShipMapPacket(
                     buf.readDouble()
             ));
         }
-        return  out;
+        return out;
     }
 }

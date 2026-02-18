@@ -3,6 +3,7 @@ package org.valkyrienskies.wims.forge.client.plugin;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.architectury.networking.NetworkManager;
 import journeymap.client.api.IClientPlugin;
+import journeymap.client.api.display.ImageOverlay;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.IClientAPI;
 
@@ -31,6 +32,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     private WIMSClientEventListener eventListener;
 
     public ArrayList<ShipMapPacket> ships;
+    public HashMap<String, ImageOverlay> shipOverlays = new HashMap<>();
     public HashMap<String, ResourceLocation> images = new HashMap<>();
 
     private boolean isMappingStarted;
@@ -60,7 +62,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         var jmAPI = getInstance().jmAPI;
 //        jmAPI.removeAll(WIMSMod.MOD_ID);
         for (ShipMapPacket ship : getInstance().ships) {
-            WIMSImageOverlay.CreateImage(ship, jmAPI);
+            WIMSImageOverlay.updateImage(ship, jmAPI);
 
         }
     }
@@ -71,8 +73,19 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     private static void receiveImage(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
         var image = ShipImagePacket.fromBuffer(buf);
-        WIMSModForge.LogInfo(String.format("image for %s: %s %s", image.slug(), image.width(), image.height()));
-        WIMSJourneyMapPlugin.INSTANCE.images.put(image.slug(), WIMSImageOverlay.RegisterResource(image,WIMSImageOverlay.convertBytes(image)));
+//        WIMSModForge.LogInfo(String.format("image for %s: %s %s | %s %s", image.slug(), image.width(), image.height(), image.data().length, image.dataLength()));
+        getInstance().images.put(image.slug(), WIMSImageOverlay.RegisterResource(image, WIMSImageOverlay.convertBytes(image)));
+        if (getInstance().shipOverlays.containsKey(image.slug())) {
+//            WIMSModForge.LogInfo(image.slug() + " updated Image");
+//            var oldImage = getInstance().shipOverlays.get(image.slug()).getImage().getImage();
+            getInstance().shipOverlays.get(image.slug()).setImage(WIMSImageOverlay.getShipImage(image.slug(), image.width(), image.height()));
+            try {
+                getInstance().jmAPI.show(getInstance().shipOverlays.get(image.slug()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+//            if (oldImage != null) oldImage.close();
+        }
     }
 
     @Override
@@ -93,7 +106,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                     break;
             }
         } catch (Throwable t) {
-            WIMSModForge.LogInfo(t.getMessage());
+            WIMSMod.LogError(t.getMessage());
         }
     }
 
