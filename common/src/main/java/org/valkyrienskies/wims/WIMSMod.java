@@ -23,8 +23,8 @@ public class WIMSMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
 
-    public static void LogInfo(String msg){
-        LOGGER.info(msg);
+    public static void LogInfo(String msg, Object... args){
+        LOGGER.info(String.format(msg, args));
     }
 
     public static void LogError(String msg){

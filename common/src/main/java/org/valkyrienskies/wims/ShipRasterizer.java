@@ -11,6 +11,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.zip.DeflaterOutputStream;
 
 public class ShipRasterizer {
+
+    private static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+
     public static byte[] generateImageData(ServerShip ship, ServerLevel level) {
         var shipAABB = ship.getShipAABB();
         if (shipAABB == null) return null;
@@ -26,12 +29,14 @@ public class ShipRasterizer {
 
         byte[] data = new byte[width * height * 4];
 
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         int r;
         int g;
         int b;
         int a;
+        int rgb;
         int i = 0;
+        int index;
+        float shadowMult;
         for (int z = minZ; z < maxZ; z++) {
             for (int x = minX; x < maxX; x++) {
                 r = 0x00;
@@ -39,27 +44,47 @@ public class ShipRasterizer {
                 b = 0x00;
                 a = 0x00;
                 for (int y = maxY; y >= minY; y--) {
-                    pos.set(x, y, z);
+                    pos.set(x,y,z);
                     BlockState state = level.getBlockState(pos);
-                    if (!state.isAir() && !state.getFluidState().isSource()) {
+                    if (IsSolidBlock(level, state)) {
                         MapColor mc = state.getMapColor(level, pos);
-                        int rgb = mc.col; // or mc.color depending on mappings
-                        r = (rgb >> 16) & 0xFF;
-                        g = (rgb >> 8) & 0xFF;
-                        b = rgb & 0xff;
+                        rgb = mc.col;
+                        shadowMult = 1;
+                        if (isInShadow(level, x, y, z)) {
+                            shadowMult = 0.75f;
+                        }
+                        r = (int) (((rgb >> 16) & 0xFF) * shadowMult);
+                        g = (int) (((rgb >> 8) & 0xFF) * shadowMult);
+                        b = (int) ((rgb & 0xff) * shadowMult);
                         a = 0xff;
                         break;
                     }
                 }
-                int index = i * 4;
-//                WIMSMod.LogInfo(String.format("server pixel %s %s %s | %s %s %s %s", x - minX, (z - minZ), index, r, g, b, a));
-                data[index] = (byte) r; // R
-                data[index + 1] = (byte) g; // G
-                data[index + 2] = (byte) b; // B
-                data[index + 3] = (byte) a; // A
+                index = i * 4;
+                WIMSMod.LogInfo("i: %s rgba %s %s %s %s", i, r, g, b, a);
+                data[index] = (byte) r;
+                data[index + 1] = (byte) g;
+                data[index + 2] = (byte) b;
+                data[index + 3] = (byte) a;
                 i++;
             }
         }
         return data;
+    }
+
+    private static boolean IsSolidBlock(ServerLevel level, int x, int y, int z) {
+        pos.set(x, y, z);
+        BlockState state = level.getBlockState(pos);
+        return IsSolidBlock(level, state);
+    }
+
+    private static boolean IsSolidBlock(ServerLevel level, BlockState state) {
+        return !state.isAir() && !state.getFluidState().isSource() && state.isSolidRender(level, pos);
+    }
+
+    private static boolean isInShadow(ServerLevel level, int x, int y, int z) {
+        return IsSolidBlock(level, x - 1, y + 1, z - 1)
+                || IsSolidBlock(level, x - 1, y + 1, z)
+                || IsSolidBlock(level, x, y + 1, z - 1);
     }
 }

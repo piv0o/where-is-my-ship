@@ -67,7 +67,7 @@ dependencies {
 
     //Journey Map
     modCompileOnlyApi(group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version_forge, changing: true)
-    modRuntimeOnly "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id_forge}"
+    modImplementation "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id_forge}"
 
     // Kotlin
     implementation("thedarkcolour:kotlinforforge:${rootProject.kotlin_forge}")
@@ -85,13 +85,13 @@ processResources {
 }
 
 loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
+//    accessWidenerPath = project(":common").file("src/main/resources/wims.accesswidener")
 
     forge {
         mixinConfig "wims-common.mixins.json"
         mixinConfig "wims.mixins.json"
-        convertAccessWideners.set(true)
-        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+//        convertAccessWideners.set(true)
+//        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
     }
     mixin {
         defaultRefmapName = "wims-refmap.json"

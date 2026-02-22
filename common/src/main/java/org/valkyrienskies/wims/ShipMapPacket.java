@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.joml.Vector3f;
 import org.valkyrienskies.core.api.ships.ServerShip;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.util.Objects;
 public record ShipMapPacket(
         String slug,
         String dim,
-        BlockPos worldPos,
+        Vector3f worldPos,
         BlockPos shipPos1,
         BlockPos shipPos2,
         double rotX,
@@ -29,7 +30,7 @@ public record ShipMapPacket(
         for (ShipMapPacket marker : markers) {
             buf.writeUtf(marker.slug);
             buf.writeUtf(marker.dim);
-            buf.writeBlockPos(marker.worldPos);
+            buf.writeVector3f(marker.worldPos);
             buf.writeBlockPos(marker.shipPos1);
             buf.writeBlockPos(marker.shipPos2);
             buf.writeDouble(marker.rotX);
@@ -42,13 +43,14 @@ public record ShipMapPacket(
     public static ShipMapPacket fromShip(ServerShip ship, ServerLevel level) {
         var shipAABB = ship.getShipAABB();
         var rotation = new Vector3d();
+        var position = ship.getKinematics().getPosition();
         ship.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
         byte[] img = null;
         if (shipAABB != null) {
             return new ShipMapPacket(
                     ship.getSlug(),
                     level.toString(),
-                    VectorToBlockPos(ship.getKinematics().getPosition()),
+                    new Vector3f((float) position.x(), (float) position.y(), (float) position.z()),
                     new BlockPos(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ()),
                     new BlockPos(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ()),
                     rotation.x,
@@ -73,9 +75,9 @@ public record ShipMapPacket(
         return shipPos2.getZ() - shipPos1.getZ();
     }
 
-    public BlockPos getWorldPos2() {
-        return worldPos.offset(shipPos2.subtract(shipPos1));
-    }
+//    public BlockPos getWorldPos2() {
+//        return worldPos.offset(shipPos2.subtract(shipPos1));
+//    }
 
     public BlockPos GetDimensions() {
         return shipPos2.subtract(shipPos1);
@@ -105,13 +107,13 @@ public record ShipMapPacket(
         return (int) Math.round(ang);
     }
 
-    public BlockPos getWorldPos1_dep() {
-        return worldPos.subtract(GetHalfDimsions());
-    }
-
-    public BlockPos getWorldPos2_dep() {
-        return worldPos.offset(GetHalfDimsions());
-    }
+//    public BlockPos getWorldPos1_dep() {
+//        return worldPos.subtract(GetHalfDimsions());
+//    }
+//
+//    public BlockPos getWorldPos2_dep() {
+//        return worldPos.offset(GetHalfDimsions());
+//    }
 
     public static ArrayList<ShipMapPacket> fromBuffer(FriendlyByteBuf buf) {
         ArrayList<ShipMapPacket> out = new ArrayList<ShipMapPacket>();
@@ -119,7 +121,7 @@ public record ShipMapPacket(
             out.add(new ShipMapPacket(
                     buf.readUtf(),
                     buf.readUtf(),
-                    buf.readBlockPos(),
+                    buf.readVector3f(),
                     buf.readBlockPos(),
                     buf.readBlockPos(),
                     buf.readDouble(),
