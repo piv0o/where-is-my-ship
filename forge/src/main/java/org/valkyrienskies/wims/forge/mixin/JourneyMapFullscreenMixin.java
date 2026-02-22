@@ -42,7 +42,8 @@ public abstract class JourneyMapFullscreenMixin {
                     target = "Ljourneymap/client/ui/fullscreen/Fullscreen;drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
                     value = "INVOKE",
                     shift = Shift.AFTER
-            )
+            ),
+            remap = false
     )
     public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, float pt, CallbackInfo ci) {
         boolean dragging = isScrolling;
