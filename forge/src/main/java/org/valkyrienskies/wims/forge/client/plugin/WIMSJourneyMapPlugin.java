@@ -32,6 +32,7 @@ import org.valkyrienskies.wims.WIMSMod;
 
 @journeymap.client.api.ClientPlugin
 public class WIMSJourneyMapPlugin implements IClientPlugin {
+    public float partialTick;
     private IClientAPI jmAPI = null;
 
     // Forge listener reference
@@ -82,7 +83,13 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
         ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f/scale, bounds);
+        tickShipVelocities();
         pose.popPose();
+    }
+
+    private static void tickShipVelocities() {
+//        getInstance().ships.replaceAll(ship -> ship.tickVelocity(getInstance().partialTick * (1f/20f)));
+        getInstance().partialTick = 0;
     }
 
     @Override

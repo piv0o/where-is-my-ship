@@ -36,6 +36,8 @@ public abstract class JourneyMapFullscreenMixin {
     @Shadow(remap = false)
     private FullMapProperties fullMapProperties;
 
+
+
         @Inject(
                 method = "drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
                 at = @At(
@@ -46,27 +48,23 @@ public abstract class JourneyMapFullscreenMixin {
                 ),
                 remap = false
         )
-        public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+        public void JourneyMapFullscreenDrawMap(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
             boolean dragging = isScrolling;
             Point2D.Double mouseDrag = getMouseDrag();
             double x = gridRenderer.getCenterBlockX() - (dragging ? mouseDrag.x : 0);
             double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
             WIMSJourneyMapPlugin.OnRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
         }
-//    @Inject(
-//            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
-//            at = @At(
-//                    target = "Ljourneymap/client/ui/fullscreen/Fullscreen;drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
-//                    value = "INVOKE",
-//                    shift = Shift.AFTER
-//            ),
-//            remap = false
-//    )
-//    public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, float pt, CallbackInfo ci) {
-//        boolean dragging = isScrolling;
-//        Point2D.Double mouseDrag = getMouseDrag();
-//        double x = gridRenderer.getCenterBlockX() - (dragging ? mouseDrag.x : 0);
-//        double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
-//        WIMSJourneyMapPlugin.OnRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
-//    }
+    @Inject(
+            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
+            at = @At(
+                    target = "Ljourneymap/client/ui/fullscreen/Fullscreen;drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
+                    value = "INVOKE",
+                    shift = Shift.AFTER
+            ),
+            remap = false
+    )
+    public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, float pt, CallbackInfo ci) {
+        WIMSJourneyMapPlugin.getInstance().partialTick = pt;
+    }
 }

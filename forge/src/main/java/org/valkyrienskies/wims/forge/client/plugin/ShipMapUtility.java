@@ -11,6 +11,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Vector3d;
+import org.valkyrienskies.core.api.ships.ClientShip;
+import org.valkyrienskies.core.internal.ships.VsiQueryableShipData;
+import org.valkyrienskies.core.internal.world.VsiClientShipWorld;
+import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
@@ -21,25 +26,41 @@ public class ShipMapUtility {
 
     public static void drawShips(GuiGraphics graphics, int mouseX, int mouseY, double scale, Rect2i bounds) {
         PoseStack pose = graphics.pose();
+        VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
+        VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
         for (ShipMapPacket ship : WIMSJourneyMapPlugin.getInstance().ships) {
 
 //            WIMSMod.LogInfo("ship %s x:%s z:%s r:%s", ship.slug(), ship.worldPos().x(), ship.worldPos().z(), ship.getTrueRotation());
 
-            var res = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
+            ResourceLocation res = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
             if (res == null) continue;
             pose.pushPose();
+            ClientShip vsShip = allShips.getById(ship.id());
 
-            pose.translate(ship.worldPos().x(), ship.worldPos().z(), 0);
-            pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
+            if (vsShip == null) {
+                pose.translate(ship.worldPos().x(), ship.worldPos().z(), 0);
+                pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
+            } else {
+                Vector3d rotation = new Vector3d();
+                vsShip.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
+                pose.translate(vsShip.getKinematics().getPosition().x(), vsShip.getKinematics().getPosition().z(), 0);
+                pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ShipMapPacket.getTrueRotation(rotation.x, rotation.y, rotation.z))), 0, 0, 0);
+            }
+
             pose.translate(-(ship.getWidth() / 2f), -(ship.getHeight() / 2f), 0);
-
             graphics.blit(res, -1, -1, 0, 0, ship.getWidth() + 2, ship.getHeight() + 2, ship.getWidth() + 2, ship.getHeight() + 2);
-
             pose.translate((ship.getWidth() / 2f), (ship.getHeight() / 2f), 0);
-            pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
-            pose.scale((float) (scale), (float) (scale), (float) (scale));
 
-            DrawUtil.drawLabel(graphics, ship.slug(), 0, /*centerZ += (double)20.0F*/0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, (double)1.0F, true);
+            if (vsShip == null) {
+                pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
+            } else {
+                Vector3d rotation = new Vector3d();
+                vsShip.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
+                pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ShipMapPacket.getTrueRotation(rotation.x, rotation.y, rotation.z))), 0, 0, 0);
+            }
+                pose.scale((float) (scale), (float) (scale), (float) (scale));
+
+            DrawUtil.drawLabel(graphics, ship.slug(), 0, /*centerZ += (double)20.0F*/0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, (double) 1.0F, true);
 //            graphics.fill(font.width(ship.slug()) / 2, 10, -font.width(ship.slug()) / 2, -10, 0X000000FF);
 //            graphics.drawCenteredString(font, ship.slug(), 0, 0, 0xffffff);
             pose.popPose();
@@ -90,7 +111,7 @@ public class ShipMapUtility {
         }
     }
 
-    public static int getOutlineColour(){
+    public static int getOutlineColour() {
         return 0xFF000000;
     }
 

@@ -8,34 +8,44 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.joml.Vector3f;
 import org.valkyrienskies.core.api.ships.ServerShip;
+import org.valkyrienskies.core.api.ships.Ship;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
 public record ShipMapPacket(
+        long id,
         String slug,
         String dim,
         Vector3f worldPos,
+        Vector3f worldVel,
         BlockPos shipPos1,
         BlockPos shipPos2,
         double rotX,
         double rotY,
-        double rotZ
-
+        double rotZ,
+        double AVX,
+        double AVY,
+        double AVZ
 
 ) {
     public static FriendlyByteBuf toBuffer(Iterable<ShipMapPacket> markers) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         for (ShipMapPacket marker : markers) {
+            buf.writeLong(marker.id);
             buf.writeUtf(marker.slug);
             buf.writeUtf(marker.dim);
             buf.writeVector3f(marker.worldPos);
+            buf.writeVector3f(marker.worldVel);
             buf.writeBlockPos(marker.shipPos1);
             buf.writeBlockPos(marker.shipPos2);
             buf.writeDouble(marker.rotX);
             buf.writeDouble(marker.rotY);
             buf.writeDouble(marker.rotZ);
+            buf.writeDouble(marker.AVX);
+            buf.writeDouble(marker.AVY);
+            buf.writeDouble(marker.AVZ);
         }
         return buf;
     }
@@ -44,18 +54,26 @@ public record ShipMapPacket(
         var shipAABB = ship.getShipAABB();
         var rotation = new Vector3d();
         var position = ship.getKinematics().getPosition();
+        var velocity = ship.getVelocity();
+//        var velRotation = new Vector3d();
+        var angularVelocity = ship.getKinematics().getAngularVelocity();
         ship.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
         byte[] img = null;
         if (shipAABB != null) {
             return new ShipMapPacket(
+                    ship.getId(),
                     ship.getSlug(),
                     level.toString(),
                     new Vector3f((float) position.x(), (float) position.y(), (float) position.z()),
+                    new Vector3f((float) velocity.x(), (float) velocity.y(), (float) velocity.z()),
                     new BlockPos(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ()),
                     new BlockPos(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ()),
                     rotation.x,
                     rotation.y,
-                    rotation.z
+                    rotation.z,
+                    angularVelocity.x(),
+                    angularVelocity.y(),
+                    angularVelocity.z()
             );
         } else {
             return null;
@@ -93,6 +111,10 @@ public record ShipMapPacket(
     }
 
     public int getTrueRotation() {
+        return getTrueRotation(rotX, rotY, rotZ);
+    }
+
+    public static int getTrueRotation(double rotX, double rotY, double rotZ) {
         var cx = Math.cos(rotX);
         var cy = Math.cos(rotY);
         var cz = Math.cos(rotZ);
@@ -107,6 +129,27 @@ public record ShipMapPacket(
         return (int) Math.round(ang);
     }
 
+    public ShipMapPacket tickVelocity(float partialTick) {
+        WIMSMod.LogInfo("Ship %s pt: %s ", slug, partialTick);
+        return new ShipMapPacket(
+                this.id,
+                this.slug,
+                this.dim,
+                this.worldPos.add(this.worldVel.mul(partialTick)),
+                this.worldVel,
+                this.shipPos1,
+                this.shipPos2,
+                this.rotX + (this.AVX * partialTick),
+                this.rotY + (this.AVY * partialTick),
+                this.rotZ + (this.AVZ * partialTick),
+                this.AVX,
+                this.AVY,
+                this.AVZ
+        );
+    }
+
+    ;
+
 //    public BlockPos getWorldPos1_dep() {
 //        return worldPos.subtract(GetHalfDimsions());
 //    }
@@ -119,11 +162,16 @@ public record ShipMapPacket(
         ArrayList<ShipMapPacket> out = new ArrayList<ShipMapPacket>();
         while (buf.readableBytes() > 0) {
             out.add(new ShipMapPacket(
+                    buf.readLong(),
                     buf.readUtf(),
                     buf.readUtf(),
                     buf.readVector3f(),
+                    buf.readVector3f(),
                     buf.readBlockPos(),
                     buf.readBlockPos(),
+                    buf.readDouble(),
+                    buf.readDouble(),
+                    buf.readDouble(),
                     buf.readDouble(),
                     buf.readDouble(),
                     buf.readDouble()
