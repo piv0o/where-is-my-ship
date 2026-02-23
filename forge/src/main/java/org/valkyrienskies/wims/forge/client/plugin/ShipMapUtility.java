@@ -1,6 +1,7 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 
 public class ShipMapUtility {
 
-    public static void drawShips(GuiGraphics graphics, int mouseX, int mouseY, float pt, double scale, Rect2i bounds) {
+    public static void drawShips(GuiGraphics graphics, int mouseX, int mouseY, double scale, Rect2i bounds) {
         PoseStack pose = graphics.pose();
         for (ShipMapPacket ship : WIMSJourneyMapPlugin.getInstance().ships) {
 

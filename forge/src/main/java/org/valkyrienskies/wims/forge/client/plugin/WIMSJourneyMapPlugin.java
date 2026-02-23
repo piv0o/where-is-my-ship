@@ -52,7 +52,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     // grabbing from JourneyMapFullscreenMixin
     // heavily based on create train map renderer
-    public static void OnRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, float pt, FullMapProperties fullMapProperties) {
+    public static void OnRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties) {
         UIState state = screen.getUiState();
         if (state == null) return;
         if (state.ui != Context.UI.Fullscreen) return;
@@ -61,13 +61,12 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         Minecraft mc = Minecraft.getInstance();
         Window window = mc.getWindow();
 
-        double guiScale = (double) window.getScreenWidth() / window.getGuiScaledWidth();
-        double scale = state.blockSize / guiScale;
+        double scale = state.blockSize;
 
         PoseStack pose = graphics.pose();
         pose.pushPose();
 
-        pose.translate(screen.width / 2.0f, screen.height / 2.0f, 0);
+        pose.translate(window.getScreenWidth() / 2.0f, window.getScreenHeight() / 2.0f, 0);
         pose.scale((float) scale, (float) scale, 1);
         pose.translate(-x, -z, 0);
 
@@ -82,7 +81,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
-        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), pt, fullMapProperties.fontScale.get()/scale/4, bounds);
+        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), fullMapProperties.fontScale.get()/4, bounds);
         pose.popPose();
     }
 
