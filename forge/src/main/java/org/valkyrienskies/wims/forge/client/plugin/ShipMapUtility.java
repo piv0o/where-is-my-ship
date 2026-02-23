@@ -13,6 +13,8 @@ import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
 
+import java.util.ArrayList;
+
 public class ShipMapUtility {
 
     public static void drawShips(GuiGraphics graphics, int mouseX, int mouseY, float pt, double scale, Rect2i bounds) {
