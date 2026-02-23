@@ -1,0 +1,11 @@
+- [X] ~~render ships below player icon~~
+- [X] ~~journeymap label styling~~
+- [ ] Add velocity and smoothing out ships in motion
+- [ ] Ability to toggle outline on and off
+- [ ] Add tooltip info for ship
+- [ ] Ships should be rendering on Minimap and fullscreen
+- [ ] Config options (Client)
+- [ ] Config options (Server)
+- [ ] Update Fabric Project
+- [ ] Support for Xaeros Minimap (Forge)
+- [ ] Support for Xaeros Minimap (Fabric)
