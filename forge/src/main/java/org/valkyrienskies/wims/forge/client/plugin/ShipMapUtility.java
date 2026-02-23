@@ -29,15 +29,15 @@ public class ShipMapUtility {
             pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
             pose.translate(-(ship.getWidth() / 2f), -(ship.getHeight() / 2f), 0);
 
-            graphics.blit(res, 0, 0, 0, 0, ship.getWidth(), ship.getHeight(), ship.getWidth(), ship.getHeight());
+            graphics.blit(res, -1, -1, 0, 0, ship.getWidth() + 2, ship.getHeight() + 2, ship.getWidth() + 2, ship.getHeight() + 2);
 
             pose.translate((ship.getWidth() / 2f), (ship.getHeight() / 2f), 0);
             pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
             pose.scale((float) (scale), (float) (scale), (float) (scale));
 
             var font = Minecraft.getInstance().font;
-            graphics.fill(font.width(ship.slug())/2,10, -font.width(ship.slug())/2, -10,0X000000FF);
-            graphics.drawCenteredString(font, ship.slug(), 0,0, 0xffffff);
+            graphics.fill(font.width(ship.slug()) / 2, 10, -font.width(ship.slug()) / 2, -10, 0X000000FF);
+            graphics.drawCenteredString(font, ship.slug(), 0, 0, 0xffffff);
             pose.popPose();
         }
     }
@@ -46,7 +46,9 @@ public class ShipMapUtility {
     private static NativeImage convertBytes(ShipImagePacket pkt) {
         byte[] data = pkt.data();
 
-        NativeImage img = new NativeImage(NativeImage.Format.RGBA, pkt.width(), pkt.height(), false);
+        NativeImage img = new NativeImage(NativeImage.Format.RGBA, pkt.width() + 2, pkt.height() + 2, false);
+
+        boolean[][] solidBlocks = new boolean[pkt.width() + 2][pkt.height() + 2];
 
         int i = 0;
         for (int y = 0; y < pkt.height(); y++) {
@@ -56,13 +58,57 @@ public class ShipMapUtility {
                 int b = data[i++] & 0xFF;
                 int a = data[i++] & 0xFF;
                 int rgba = (a << 24) | (b << 16) | (g << 8) | r; // fuck this value
-                img.setPixelRGBA(x, y, rgba);
+                solidBlocks[x + 1][y + 1] = a != 0;
+                img.setPixelRGBA(x + 1, y + 1, rgba);
 
             }
         }
 
+        outlineImage(img, solidBlocks);
+
         return img;
     }
+
+    private static void outlineImage(NativeImage img, boolean[][] solidBlocks) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        ArrayList<Integer[]> outLines = new ArrayList<Integer[]>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (isPixelTransparent(solidBlocks, x, y) && isNeighborOpaque(solidBlocks, x, y)) {
+                    outLines.add(new Integer[]{x, y});
+                }
+            }
+        }
+
+        for (Integer[] outLine : outLines) {
+            img.setPixelRGBA(outLine[0], outLine[1], getOutlineColour());
+        }
+    }
+
+    public static int getOutlineColour(){
+        return 0xFF000000;
+    }
+
+    private static boolean isPixelTransparent(boolean[][] solidBlocks, int x, int y) {
+        if (x < 0 || y < 0 || x >= solidBlocks.length || y >= solidBlocks[x].length) return true;
+        return !solidBlocks[x][y];
+    }
+
+    private static boolean isNeighborOpaque(boolean[][] solidBlocks, int x, int y) {
+        return !isPixelTransparent(solidBlocks, x + 1, y)
+                || !isPixelTransparent(solidBlocks, x - 1, y)
+                || !isPixelTransparent(solidBlocks, x, y + 1)
+                || !isPixelTransparent(solidBlocks, x, y - 1);
+    }
+
+
+//doesn't work unless we have transparency, maybe attempt it but it's not a high priority
+//    private static boolean isNeighborOpaque2(boolean[][] solidBlocks, int x, int y) {
+//        return !isPixelTransparent(solidBlocks, x - 1, y)
+//                || !isPixelTransparent(solidBlocks, x, y - 1);
+//    }
+
 
     public static void RegisterResource(ShipImagePacket pkt) {
         NativeImage img = convertBytes(pkt);
@@ -73,12 +119,12 @@ public class ShipMapUtility {
         if (WIMSJourneyMapPlugin.getInstance().images.containsKey(pkt.slug())) {
             resource = WIMSJourneyMapPlugin.getInstance().images.get(pkt.slug());
             texture = (DynamicTexture) mc.getTextureManager().getTexture(resource);
-            mc.execute(()->{
+            mc.execute(() -> {
                 mc.getTextureManager().register(resource, new DynamicTexture(img));
                 texture.close();
             });
         } else {
-        texture = new DynamicTexture(img);
+            texture = new DynamicTexture(img);
             resource = new ResourceLocation("wims", "ship/" + pkt.slug());
             mc.getTextureManager().register(resource, texture);
             WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), resource);

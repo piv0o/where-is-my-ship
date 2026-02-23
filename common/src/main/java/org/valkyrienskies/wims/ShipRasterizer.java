@@ -56,12 +56,11 @@ public class ShipRasterizer {
                         r = (int) (((rgb >> 16) & 0xFF) * shadowMult);
                         g = (int) (((rgb >> 8) & 0xFF) * shadowMult);
                         b = (int) ((rgb & 0xff) * shadowMult);
-                        a = 0xff;
+                        a = 0xFF;
                         break;
                     }
                 }
                 index = i * 4;
-                WIMSMod.LogInfo("i: %s rgba %s %s %s %s", i, r, g, b, a);
                 data[index] = (byte) r;
                 data[index + 1] = (byte) g;
                 data[index + 2] = (byte) b;
