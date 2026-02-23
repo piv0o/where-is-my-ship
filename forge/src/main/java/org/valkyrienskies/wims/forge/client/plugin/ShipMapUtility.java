@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import journeymap.client.render.draw.DrawUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,9 +39,9 @@ public class ShipMapUtility {
             pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
             pose.scale((float) (scale), (float) (scale), (float) (scale));
 
-            var font = Minecraft.getInstance().font;
-            graphics.fill(font.width(ship.slug()) / 2, 10, -font.width(ship.slug()) / 2, -10, 0X000000FF);
-            graphics.drawCenteredString(font, ship.slug(), 0, 0, 0xffffff);
+            DrawUtil.drawLabel(graphics, ship.slug(), 0, /*centerZ += (double)20.0F*/0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, (double)1.0F, true);
+//            graphics.fill(font.width(ship.slug()) / 2, 10, -font.width(ship.slug()) / 2, -10, 0X000000FF);
+//            graphics.drawCenteredString(font, ship.slug(), 0, 0, 0xffffff);
             pose.popPose();
         }
     }

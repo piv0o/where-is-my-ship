@@ -81,7 +81,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
-        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), fullMapProperties.fontScale.get()/4, bounds);
+        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f/scale, bounds);
         pose.popPose();
     }
 
