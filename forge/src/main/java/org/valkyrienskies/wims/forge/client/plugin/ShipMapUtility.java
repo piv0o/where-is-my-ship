@@ -59,7 +59,7 @@ public class ShipMapUtility {
     private static NativeImage convertBytes(ShipImagePacket pkt) {
         byte[] data = pkt.data();
 
-        NativeImage img = new NativeImage(NativeImage.Format.RGBA, pkt.width() + 2, pkt.height() + 2, false);
+        NativeImage img = new NativeImage(NativeImage.Format.RGBA, pkt.width() + 2, pkt.height() + 2, true);
 
         boolean[][] solidBlocks = new boolean[pkt.width() + 2][pkt.height() + 2];
 
