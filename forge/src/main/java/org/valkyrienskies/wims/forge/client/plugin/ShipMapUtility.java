@@ -19,6 +19,8 @@ import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
+import org.valkyrienskies.wims.client.ShipClientCoordinates;
+import org.valkyrienskies.wims.client.ShipClientImage;
 
 import java.util.ArrayList;
 
@@ -29,40 +31,26 @@ public class ShipMapUtility {
         VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
         VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
         for (ShipMapPacket ship : WIMSJourneyMapPlugin.getInstance().ships) {
-
-//            WIMSMod.LogInfo("ship %s x:%s z:%s r:%s", ship.slug(), ship.worldPos().x(), ship.worldPos().z(), ship.getTrueRotation());
-
-            ResourceLocation res = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
-            if (res == null) continue;
+            ShipClientImage shipImage = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
+            if (shipImage == null) continue;
             pose.pushPose();
-            ClientShip vsShip = allShips.getById(ship.id());
+            var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
 
-            if (vsShip == null) {
-                pose.translate(ship.worldPos().x(), ship.worldPos().z(), 0);
-                pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
-            } else {
-                Vector3d rotation = new Vector3d();
-                vsShip.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
-                pose.translate(vsShip.getKinematics().getPosition().x(), vsShip.getKinematics().getPosition().z(), 0);
-                pose.rotateAround(Axis.ZP.rotation((float) Math.toRadians(ShipMapPacket.getTrueRotation(rotation.x, rotation.y, rotation.z))), 0, 0, 0);
-            }
+            //position to world
+            pose.translate(coords.position.x(), coords.position.z(), 0);
 
-            pose.translate(-(ship.getWidth() / 2f), -(ship.getHeight() / 2f), 0);
-            graphics.blit(res, -1, -1, 0, 0, ship.getWidth() + 2, ship.getHeight() + 2, ship.getWidth() + 2, ship.getHeight() + 2);
-            pose.translate((ship.getWidth() / 2f), (ship.getHeight() / 2f), 0);
+            //draw ship image
+            pose.rotateAround(coords.getQuaternion(), 0, 0, 0);
+            pose.translate(-(shipImage.width() / 2f), -(shipImage.height() / 2f), 0);
+            graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
 
-            if (vsShip == null) {
-                pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ship.getTrueRotation())), 0, 0, 0);
-            } else {
-                Vector3d rotation = new Vector3d();
-                vsShip.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
-                pose.rotateAround(Axis.ZP.rotation((float) -Math.toRadians(ShipMapPacket.getTrueRotation(rotation.x, rotation.y, rotation.z))), 0, 0, 0);
-            }
-                pose.scale((float) (scale), (float) (scale), (float) (scale));
+            //draw ship slug label
+            pose.translate((shipImage.width() / 2f), (shipImage.height() / 2f), 0);
+            pose.rotateAround(coords.getReverseQuaternion(), 0, 0, 0);
+            pose.scale((float) (scale), (float) (scale), (float) (scale));
+            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F,  1.0F, true);
 
-            DrawUtil.drawLabel(graphics, ship.slug(), 0, /*centerZ += (double)20.0F*/0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, (double) 1.0F, true);
-//            graphics.fill(font.width(ship.slug()) / 2, 10, -font.width(ship.slug()) / 2, -10, 0X000000FF);
-//            graphics.drawCenteredString(font, ship.slug(), 0, 0, 0xffffff);
+            // donezo
             pose.popPose();
         }
     }
@@ -142,17 +130,18 @@ public class ShipMapUtility {
         DynamicTexture texture;
         ResourceLocation resource;
         if (WIMSJourneyMapPlugin.getInstance().images.containsKey(pkt.slug())) {
-            resource = WIMSJourneyMapPlugin.getInstance().images.get(pkt.slug());
+            resource = WIMSJourneyMapPlugin.getInstance().images.get(pkt.slug()).resource();
             texture = (DynamicTexture) mc.getTextureManager().getTexture(resource);
             mc.execute(() -> {
                 mc.getTextureManager().register(resource, new DynamicTexture(img));
                 texture.close();
+                WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), new ShipClientImage(resource, img.getWidth(), img.getHeight()));
             });
         } else {
             texture = new DynamicTexture(img);
             resource = new ResourceLocation("wims", "ship/" + pkt.slug());
             mc.getTextureManager().register(resource, texture);
-            WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), resource);
+            WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), new ShipClientImage(resource, img.getWidth(), img.getHeight()));
         }
     }
 

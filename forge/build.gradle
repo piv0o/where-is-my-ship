@@ -66,6 +66,7 @@ dependencies {
     }
 
     //Journey Map
+
     modCompileOnlyApi(group: 'info.journeymap', name: 'journeymap-api', version: project.journeymap_api_version_forge, changing: true)
     modImplementation "curse.maven:journeymap-${project.jm_project_id}:${project.jm_file_id_forge}"
 

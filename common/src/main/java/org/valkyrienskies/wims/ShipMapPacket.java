@@ -53,7 +53,9 @@ public record ShipMapPacket(
     public static ShipMapPacket fromShip(ServerShip ship, ServerLevel level) {
         var shipAABB = ship.getShipAABB();
         var rotation = new Vector3d();
-        var position = ship.getKinematics().getPosition();
+        var center = new Vector3f();
+//        var position = ship.getKinematics().getPosition();
+         ship.getWorldAABB().center(center);
         var velocity = ship.getVelocity();
 //        var velRotation = new Vector3d();
         var angularVelocity = ship.getKinematics().getAngularVelocity();
@@ -64,7 +66,8 @@ public record ShipMapPacket(
                     ship.getId(),
                     ship.getSlug(),
                     level.toString(),
-                    new Vector3f((float) position.x(), (float) position.y(), (float) position.z()),
+                    center,
+//                    new Vector3f((float) position.x(), (float) position.y(), (float) position.z()),
                     new Vector3f((float) velocity.x(), (float) velocity.y(), (float) velocity.z()),
                     new BlockPos(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ()),
                     new BlockPos(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ()),

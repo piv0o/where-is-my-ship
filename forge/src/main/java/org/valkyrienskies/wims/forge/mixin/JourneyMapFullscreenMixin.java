@@ -55,16 +55,16 @@ public abstract class JourneyMapFullscreenMixin {
             double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
             WIMSJourneyMapPlugin.OnRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
         }
-    @Inject(
-            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
-            at = @At(
-                    target = "Ljourneymap/client/ui/fullscreen/Fullscreen;drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
-                    value = "INVOKE",
-                    shift = Shift.AFTER
-            ),
-            remap = false
-    )
-    public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, float pt, CallbackInfo ci) {
-        WIMSJourneyMapPlugin.getInstance().partialTick = pt;
-    }
+//    @Inject(
+//            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",
+//            at = @At(
+//                    target = "Ljourneymap/client/ui/fullscreen/Fullscreen;drawMap(Lnet/minecraft/client/gui/GuiGraphics;II)V",
+//                    value = "INVOKE",
+//                    shift = Shift.AFTER
+//            ),
+//            remap = false
+//    )
+//    public void JourneyMapFullscreenRender(GuiGraphics graphics, int mouseX, int mouseY, float pt, CallbackInfo ci) {
+//        WIMSJourneyMapPlugin.getInstance().partialTick = pt;
+//    }
 }

@@ -29,6 +29,7 @@ import net.minecraftforge.common.MinecraftForge;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
+import org.valkyrienskies.wims.client.ShipClientImage;
 
 @journeymap.client.api.ClientPlugin
 public class WIMSJourneyMapPlugin implements IClientPlugin {
@@ -39,7 +40,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     private static WIMSJourneyMapPlugin INSTANCE;
 
     public ArrayList<ShipMapPacket> ships;
-    public HashMap<String, ResourceLocation> images = new HashMap<>();
+    public HashMap<String, ShipClientImage> images = new HashMap<>();
 
     private boolean isMappingStarted;
 
@@ -89,7 +90,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     private static void tickShipVelocities() {
 //        getInstance().ships.replaceAll(ship -> ship.tickVelocity(getInstance().partialTick * (1f/20f)));
-        getInstance().partialTick = 0;
+//        getInstance().partialTick = 0;
     }
 
     @Override
