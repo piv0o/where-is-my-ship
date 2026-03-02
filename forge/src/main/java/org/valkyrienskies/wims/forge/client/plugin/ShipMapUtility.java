@@ -2,15 +2,23 @@ package org.valkyrienskies.wims.forge.client.plugin;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import journeymap.client.cartography.color.RGB;
+import journeymap.client.render.RenderWrapper;
 import journeymap.client.render.draw.DrawUtil;
+import journeymap.client.render.map.GridRenderer;
+import journeymap.client.texture.Texture;
+import journeymap.client.texture.TextureCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.core.internal.ships.VsiQueryableShipData;
@@ -26,7 +34,9 @@ import java.util.ArrayList;
 
 public class ShipMapUtility {
 
-    public static void drawShips(GuiGraphics graphics, int mouseX, int mouseY, double scale, Rect2i bounds) {
+    public static double zLevel = 0.0D;
+
+    public static void drawShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds) {
         PoseStack pose = graphics.pose();
         VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
         VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
@@ -34,6 +44,7 @@ public class ShipMapUtility {
             ShipClientImage shipImage = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
             if (shipImage == null) continue;
             pose.pushPose();
+//            WIMSMod.LogInfo("ship %s start", ship.slug());
             var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
 
             //position to world
@@ -48,11 +59,56 @@ public class ShipMapUtility {
             pose.translate((shipImage.width() / 2f), (shipImage.height() / 2f), 0);
             pose.rotateAround(coords.getReverseQuaternion(), 0, 0, 0);
             pose.scale((float) (scale), (float) (scale), (float) (scale));
-            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F,  1.0F, true);
+            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
 
             // donezo
+//            WIMSMod.LogInfo("ship %s end", ship.slug());
             pose.popPose();
         }
+    }
+
+    public static void drawMiniShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, GridRenderer gridRenderer) {
+        PoseStack pose = graphics.pose();
+        VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
+        VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
+        for (ShipMapPacket ship : WIMSJourneyMapPlugin.getInstance().ships) {
+            ShipClientImage shipImage = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
+            if (shipImage == null) continue;
+            var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
+            var mapCoords = gridRenderer.getPixel(coords.position.x, coords.position.z);
+            if (mapCoords == null){
+//                WIMSMod.LogInfo("Ship %s mapCoords is Null", ship.slug());
+                continue;
+            }
+            pose.pushPose();
+//            WIMSMod.LogInfo("X: %s %s Z: %s %s", coords.position.x, mapCoords.x, coords.position.z, mapCoords.y);
+//            DrawUtil.drawColoredEntity(graphics.pose(), mapCoords.x, mapCoords.y, playerArrowBg, 16777215, 1.0F, 2.0F, (double) Math.toDegrees(coords.rotation));
+//            pose.rotateAround(coords.getQuaternion(), 0, 0, 0);
+            pose.translate((float) mapCoords.x + shipImage.width() / 2f, (float) mapCoords.y + shipImage.height() / 2f, 0);
+            pose.scale((float) (scale), (float) (scale), (float) (scale));
+            pose.mulPose(coords.getQuaternion());
+
+            pose.translate((float) - shipImage.width() / 2f,  - shipImage.height() / 2f, 0);
+
+//            pose.translate((float) -mapCoords.x, (float) -mapCoords.y, 0);
+
+            graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
+//            DrawUtil.drawLabel(graphics, ship.slug(), mapCoords.x, mapCoords.y, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+
+//            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+
+            pose.popPose();
+        }
+    }
+
+    public static void addVertexWithUV(PoseStack poseStack, BufferBuilder buff, double x, double y, double z, double u, double v) {
+        addVertexWithUV(poseStack, buff, (float) x, (float) y, (float) z, (float) u, (float) v);
+    }
+
+    public static void addVertexWithUV(PoseStack poseStack, BufferBuilder buff, float x, float y, float z, float u, float v) {
+        PoseStack.Pose entry = poseStack.last();
+        Matrix4f matrix4f = entry.pose();
+        buff.vertex(matrix4f, x, y, z).uv(u, v).endVertex();
     }
 
 

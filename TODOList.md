@@ -3,9 +3,9 @@
 - [X] ~~journeymap label styling~~
 - [X] ~~Add velocity and smoothing out ships in motion~~
 - [X] ~~Update Loom so I don't need to change versions to build~~
+- [ ] Ships should be rendering on Minimap and fullscreen
 - [ ] Ability to toggle outline on and off
 - [ ] Add tooltip info for ship
-- [ ] Ships should be rendering on Minimap and fullscreen
 - [ ] Config options (Client)
 - [ ] Config options (Server)
 - [ ] Update Fabric Project
@@ -13,5 +13,5 @@
 - [ ] Support for Xaeros Minimap (Fabric)
 
 # Known Bugs
-- [ ] Issue where sometimes image renders with artifacting
+- [X] ~~Issue where sometimes image renders with artifacting~~
 - [ ] crash sometimes with unknown pixels

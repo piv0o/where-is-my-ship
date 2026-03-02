@@ -13,12 +13,18 @@ import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
 import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 
 import journeymap.client.api.util.UIState;
 import journeymap.client.properties.FullMapProperties;
+import journeymap.client.properties.MiniMapProperties;
+import journeymap.client.render.draw.DrawUtil;
+import journeymap.client.render.map.GridRenderer;
+import journeymap.client.texture.Texture;
 import journeymap.client.ui.fullscreen.Fullscreen;
+import journeymap.client.ui.minimap.MiniMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
@@ -54,7 +60,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     // grabbing from JourneyMapFullscreenMixin
     // heavily based on create train map renderer
-    public static void OnRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties) {
+    public static void OnFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties) {
         UIState state = screen.getUiState();
         if (state == null) return;
         if (state.ui != Context.UI.Fullscreen) return;
@@ -83,9 +89,26 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
-        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f/scale, bounds);
+        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds);
         tickShipVelocities();
         pose.popPose();
+    }
+
+    public static void OnMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties) {
+        try {
+            Minecraft mc = Minecraft.getInstance();
+            Window window = mc.getWindow();
+            PoseStack pose = graphics.pose();
+            var scale = Math.pow((double)2.0F, (double) miniMapProperties.zoomLevel.get());
+            if (mc.player != null) {
+                WIMSMod.LogInfo("Minimap X: %s Z: %s SCALE: %s", x, z, scale);
+                ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer);
+            }
+        } catch (Exception e) {
+            WIMSMod.LogError(e.getMessage());
+            WIMSMod.LogError(Arrays.toString(e.getStackTrace()));
+        }
+
     }
 
     private static void tickShipVelocities() {

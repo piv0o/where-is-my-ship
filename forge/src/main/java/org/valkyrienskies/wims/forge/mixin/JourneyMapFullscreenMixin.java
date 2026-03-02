@@ -53,7 +53,7 @@ public abstract class JourneyMapFullscreenMixin {
             Point2D.Double mouseDrag = getMouseDrag();
             double x = gridRenderer.getCenterBlockX() - (dragging ? mouseDrag.x : 0);
             double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
-            WIMSJourneyMapPlugin.OnRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
+            WIMSJourneyMapPlugin.OnFullscreenRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
         }
 //    @Inject(
 //            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",

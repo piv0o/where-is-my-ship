@@ -6,7 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "JourneyMapFullscreenMixin"
+    "JourneyMapFullscreenMixin",
+    "JourneyMapMiniMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1
