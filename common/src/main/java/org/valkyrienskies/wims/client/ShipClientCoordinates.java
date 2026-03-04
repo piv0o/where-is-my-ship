@@ -10,6 +10,7 @@ import org.valkyrienskies.wims.ShipMapPacket;
 public class ShipClientCoordinates {
     public Vector3f position;
     public float rotation;
+    public double mass;
     public ShipClientCoordinates(ClientShip ship, ShipMapPacket pkt){
         if(ship != null){
             Vector3d r = new Vector3d();
@@ -23,6 +24,7 @@ public class ShipClientCoordinates {
             position = pkt.worldPos();
             rotation = (float) Math.toRadians(pkt.getTrueRotation());
         }
+        mass = pkt.mass();
     }
 
     public Quaternionf getQuaternion(){

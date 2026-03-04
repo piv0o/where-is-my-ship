@@ -27,7 +27,8 @@ public record ShipMapPacket(
         double rotZ,
         double AVX,
         double AVY,
-        double AVZ
+        double AVZ,
+        double mass
 
 ) {
     public static FriendlyByteBuf toBuffer(Iterable<ShipMapPacket> markers) {
@@ -46,6 +47,7 @@ public record ShipMapPacket(
             buf.writeDouble(marker.AVX);
             buf.writeDouble(marker.AVY);
             buf.writeDouble(marker.AVZ);
+            buf.writeDouble(marker.mass);
         }
         return buf;
     }
@@ -76,7 +78,8 @@ public record ShipMapPacket(
                     rotation.z,
                     angularVelocity.x(),
                     angularVelocity.y(),
-                    angularVelocity.z()
+                    angularVelocity.z(),
+                    ship.getInertiaData().getMass()
             );
         } else {
             return null;
@@ -147,7 +150,8 @@ public record ShipMapPacket(
                 this.rotZ + (this.AVZ * partialTick),
                 this.AVX,
                 this.AVY,
-                this.AVZ
+                this.AVZ,
+                this.mass
         );
     }
 
@@ -172,6 +176,7 @@ public record ShipMapPacket(
                     buf.readVector3f(),
                     buf.readBlockPos(),
                     buf.readBlockPos(),
+                    buf.readDouble(),
                     buf.readDouble(),
                     buf.readDouble(),
                     buf.readDouble(),
