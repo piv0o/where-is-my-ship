@@ -57,7 +57,6 @@ public class ShipMapUtility {
             pose.translate((shipImage.width() / 2f), (shipImage.height() / 2f), 0);
             pose.rotateAround(coords.getReverseQuaternion(), 0, 0, 0);
             pose.scale((float) (scale), (float) (scale), (float) (scale));
-            WIMSMod.LogInfo("MinMass: %s %s", getSettings().MinMassForLabel.get(), ship.mass() );
 
             if((getSettings().shipsShouldHaveLabels.get() == ShipOptions.ALWAYS || getSettings().shipsShouldHaveLabels.get() == ShipOptions.FULLSCREEN_ONLY) && ship.mass() >= Integer.parseInt(getSettings().MinMassForLabel.get().toString()) ) {
                 DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
@@ -98,7 +97,6 @@ public class ShipMapUtility {
             pose.translate((float)  shipImage.width() / 2f,   shipImage.height() / 2f, 10);
             pose.mulPose(coords.getReverseQuaternion());
             pose.scale((float) (1/scale), (float) (1/scale), 1);
-            WIMSMod.LogInfo("MinMass: %s %s", getSettings().MinMassForLabel.get(), ship.mass() );
             if((getSettings().shipsShouldHaveLabels.get() == ShipOptions.ALWAYS || getSettings().shipsShouldHaveLabels.get() == ShipOptions.MINIMAP_ONLY) && ship.mass() >= getSettings().MinMassForLabel.get()){
                 DrawUtil.drawBatchLabel(graphics.pose(), Component.literal(ship.slug()), buffer, 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
             }

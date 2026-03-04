@@ -7,6 +7,7 @@
 - [X] ~~Ships should get tinted by nighttime rendering~~
 - [X] ~~Ability to toggle outline on and off~~
 - [X] ~~Config options (Client)~~
+- [X] ~~Added Minimum Mass Option~~
 - [ ] Improve Rendering speed for worlds with large amounts of Ships (maybe have the client request new resources or get the resources directly from the client?)
 - [ ] Allow minimap to render ships entirely on the client side if possible
 
@@ -22,3 +23,6 @@
 # Known Bugs
 - [X] ~~Issue where sometimes image renders with artifacting~~
 - [ ] crash sometimes with unknown pixels
+
+# Future maybe's
+- [ ] Rotate rendering depending on what it the most prominant face up

@@ -12,6 +12,7 @@ import org.valkyrienskies.core.internal.world.VsiServerShipWorld;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class WIMSMod {
@@ -21,6 +22,8 @@ public class WIMSMod {
     public static final ResourceLocation SHIPS_IMAGE_PACKET_ID = new ResourceLocation(WIMSMod.MOD_ID, "ships_image_packet_id");
 
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final HashMap<String, Double> masses = new HashMap<>();
 
 
     public static void LogInfo(String msg, Object... args){
@@ -54,7 +57,8 @@ public class WIMSMod {
         int i = 0;
         for (ServerShip ship : ships) {
             var AABB = ship.getShipAABB();
-            if (timer % (shipCount * 60) == (i * 60) && AABB != null) {
+            double mass = ship.getInertiaData().getMass();
+            if (AABB != null && (timer % (shipCount * 60) == (i * 60) || !masses.containsKey(ship.getSlug()) || masses.get(ship.getSlug()) != mass)) {
                 byte[] data = ShipRasterizer.generateImageData(ship, level);
                 if (data != null) {
                     image = new ShipImagePacket(
@@ -64,6 +68,7 @@ public class WIMSMod {
                             data.length,
                             data
                     );
+                    masses.put(ship.getSlug(), mass);
                 }
             }
             i++;
