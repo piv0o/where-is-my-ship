@@ -14,9 +14,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
@@ -67,7 +69,7 @@ public class ShipMapUtility {
         }
     }
 
-    public static void drawMiniShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, GridRenderer gridRenderer) {
+    public static void drawMiniShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, GridRenderer gridRenderer, MultiBufferSource.BufferSource buffer) {
         PoseStack pose = graphics.pose();
         VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
         VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
@@ -77,25 +79,22 @@ public class ShipMapUtility {
             var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
             var mapCoords = gridRenderer.getPixel(coords.position.x, coords.position.z);
             if (mapCoords == null){
-//                WIMSMod.LogInfo("Ship %s mapCoords is Null", ship.slug());
                 continue;
             }
             pose.pushPose();
-//            WIMSMod.LogInfo("X: %s %s Z: %s %s", coords.position.x, mapCoords.x, coords.position.z, mapCoords.y);
-//            DrawUtil.drawColoredEntity(graphics.pose(), mapCoords.x, mapCoords.y, playerArrowBg, 16777215, 1.0F, 2.0F, (double) Math.toDegrees(coords.rotation));
-//            pose.rotateAround(coords.getQuaternion(), 0, 0, 0);
-            pose.translate((float) mapCoords.x + shipImage.width() / 2f, (float) mapCoords.y + shipImage.height() / 2f, 0);
-            pose.scale((float) (scale), (float) (scale), (float) (scale));
-            pose.mulPose(coords.getQuaternion());
 
+            pose.translate((float) mapCoords.x + shipImage.width() / 2f, (float) mapCoords.y + shipImage.height() / 2f, 0);
+            pose.scale((float) (scale), (float) (scale), 1);
+            pose.mulPose(coords.getQuaternion());
             pose.translate((float) - shipImage.width() / 2f,  - shipImage.height() / 2f, 0);
 
-//            pose.translate((float) -mapCoords.x, (float) -mapCoords.y, 0);
-
             graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
-//            DrawUtil.drawLabel(graphics, ship.slug(), mapCoords.x, mapCoords.y, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
 
-//            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+            pose.translate((float)  shipImage.width() / 2f,   shipImage.height() / 2f, 10);
+            pose.mulPose(coords.getReverseQuaternion());
+            pose.scale((float) (1/scale), (float) (1/scale), 1);
+
+            DrawUtil.drawBatchLabel(graphics.pose(), Component.literal(ship.slug()), buffer, 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
 
             pose.popPose();
         }

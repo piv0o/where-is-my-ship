@@ -27,6 +27,7 @@ import journeymap.client.ui.fullscreen.Fullscreen;
 import journeymap.client.ui.minimap.MiniMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -99,10 +100,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
             Minecraft mc = Minecraft.getInstance();
             Window window = mc.getWindow();
             PoseStack pose = graphics.pose();
+            MultiBufferSource.BufferSource buffer = graphics.bufferSource();
             var scale = Math.pow((double)2.0F, (double) miniMapProperties.zoomLevel.get());
             if (mc.player != null) {
                 WIMSMod.LogInfo("Minimap X: %s Z: %s SCALE: %s", x, z, scale);
-                ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer);
+                ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer);
             }
         } catch (Exception e) {
             WIMSMod.LogError(e.getMessage());
