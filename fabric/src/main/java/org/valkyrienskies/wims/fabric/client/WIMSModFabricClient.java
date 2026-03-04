@@ -7,6 +7,6 @@ public class WIMSModFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        WIMSModClient.InitClient();
+        WIMSModClient.initClient();
     }
 }

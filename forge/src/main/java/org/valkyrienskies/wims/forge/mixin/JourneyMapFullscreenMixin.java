@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At.Shift;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.forge.client.plugin.WIMSJourneyMapPlugin;
 
 import java.awt.geom.Point2D;
@@ -52,12 +51,12 @@ public abstract class JourneyMapFullscreenMixin {
                 ),
                 remap = false
         )
-        public void JourneyMapFullscreenDrawMap(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
+        public void drawMap(GuiGraphics graphics, int mouseX, int mouseY, CallbackInfo ci) {
             boolean dragging = isScrolling;
             Point2D.Double mouseDrag = getMouseDrag();
             double x = gridRenderer.getCenterBlockX() - (dragging ? mouseDrag.x : 0);
             double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
-            WIMSJourneyMapPlugin.OnFullscreenRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties, state);
+            WIMSJourneyMapPlugin.onFullscreenRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties, state);
         }
 //    @Inject(
 //            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",

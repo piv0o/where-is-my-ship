@@ -5,14 +5,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import org.joml.Vector3d;
-import org.joml.Vector3dc;
 import org.joml.Vector3f;
 import org.valkyrienskies.core.api.ships.ServerShip;
-import org.valkyrienskies.core.api.ships.Ship;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public record ShipMapPacket(
         long id,
@@ -56,20 +51,16 @@ public record ShipMapPacket(
         var shipAABB = ship.getShipAABB();
         var rotation = new Vector3d();
         var center = new Vector3f();
-//        var position = ship.getKinematics().getPosition();
          ship.getWorldAABB().center(center);
         var velocity = ship.getVelocity();
-//        var velRotation = new Vector3d();
         var angularVelocity = ship.getKinematics().getAngularVelocity();
         ship.getKinematics().getRotation().getEulerAnglesXYZ(rotation);
-        byte[] img = null;
         if (shipAABB != null) {
             return new ShipMapPacket(
                     ship.getId(),
                     ship.getSlug(),
                     level.toString(),
                     center,
-//                    new Vector3f((float) position.x(), (float) position.y(), (float) position.z()),
                     new Vector3f((float) velocity.x(), (float) velocity.y(), (float) velocity.z()),
                     new BlockPos(shipAABB.minX(), shipAABB.minY(), shipAABB.minZ()),
                     new BlockPos(shipAABB.maxX(), shipAABB.maxY(), shipAABB.maxZ()),
@@ -84,36 +75,6 @@ public record ShipMapPacket(
         } else {
             return null;
         }
-    }
-
-
-    private static BlockPos VectorToBlockPos(Vector3dc vec) {
-        return new BlockPos((int) Math.round(vec.x()), (int) Math.round(vec.y()), (int) Math.round((vec.z())));
-    }
-
-    public int getWidth() {
-        return shipPos2.getX() - shipPos1.getX();
-    }
-
-    public int getHeight() {
-        return shipPos2.getZ() - shipPos1.getZ();
-    }
-
-//    public BlockPos getWorldPos2() {
-//        return worldPos.offset(shipPos2.subtract(shipPos1));
-//    }
-
-    public BlockPos GetDimensions() {
-        return shipPos2.subtract(shipPos1);
-    }
-
-    public BlockPos GetHalfDimsions() {
-        var dimensions = GetDimensions();
-        return new BlockPos(
-                Math.round((float) dimensions.getX() / 2),
-                Math.round((float) dimensions.getY() / 2),
-                Math.round((float) dimensions.getZ() / 2)
-        );
     }
 
     public int getTrueRotation() {
@@ -135,38 +96,8 @@ public record ShipMapPacket(
         return (int) Math.round(ang);
     }
 
-    public ShipMapPacket tickVelocity(float partialTick) {
-        WIMSMod.LogInfo("Ship %s pt: %s ", slug, partialTick);
-        return new ShipMapPacket(
-                this.id,
-                this.slug,
-                this.dim,
-                this.worldPos.add(this.worldVel.mul(partialTick)),
-                this.worldVel,
-                this.shipPos1,
-                this.shipPos2,
-                this.rotX + (this.AVX * partialTick),
-                this.rotY + (this.AVY * partialTick),
-                this.rotZ + (this.AVZ * partialTick),
-                this.AVX,
-                this.AVY,
-                this.AVZ,
-                this.mass
-        );
-    }
-
-    ;
-
-//    public BlockPos getWorldPos1_dep() {
-//        return worldPos.subtract(GetHalfDimsions());
-//    }
-//
-//    public BlockPos getWorldPos2_dep() {
-//        return worldPos.offset(GetHalfDimsions());
-//    }
-
     public static ArrayList<ShipMapPacket> fromBuffer(FriendlyByteBuf buf) {
-        ArrayList<ShipMapPacket> out = new ArrayList<ShipMapPacket>();
+        ArrayList<ShipMapPacket> out = new ArrayList<>();
         while (buf.readableBytes() > 0) {
             out.add(new ShipMapPacket(
                     buf.readLong(),

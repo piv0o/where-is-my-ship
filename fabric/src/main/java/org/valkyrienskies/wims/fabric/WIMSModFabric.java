@@ -11,6 +11,6 @@ public class WIMSModFabric implements ModInitializer {
         // Proceed with mild caution.
 
         // Run our common setup.
-        WIMSMod.Init();
+        WIMSMod.init();
     }
 }

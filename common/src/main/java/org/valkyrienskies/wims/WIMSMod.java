@@ -26,23 +26,21 @@ public class WIMSMod {
     private static final HashMap<String, Double> masses = new HashMap<>();
 
 
-    public static void LogInfo(String msg, Object... args){
+    public static void logInfo(String msg, Object... args){
         LOGGER.info(String.format(msg, args));
     }
 
-    public static void LogError(String msg){
+    public static void logError(String msg){
         LOGGER.error(msg);
     }
 
-    public static void LogWarn(String msg){
+    public static void logWarn(String msg){
         LOGGER.warn(msg);
     }
 
     public static int timer = 0;
 
-    public static void Init() {
-        //
-
+    public static void init() {
         TickEvent.SERVER_LEVEL_POST.register(WIMSMod::tick);
     }
 
@@ -51,7 +49,7 @@ public class WIMSMod {
         ServerLevel level = server.getLevel();
         VsiServerShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(level);
         VsiQueryableShipData<ServerShip> ships = shipWorld.getAllShips();
-        ArrayList<ShipMapPacket> packets = new ArrayList<ShipMapPacket>();
+        ArrayList<ShipMapPacket> packets = new ArrayList<>();
         ShipImagePacket image = null;
         int shipCount = ships.toArray().length;
         int i = 0;

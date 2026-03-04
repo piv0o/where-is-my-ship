@@ -5,7 +5,7 @@ import org.valkyrienskies.wims.client.WIMSModClient;
 
 public class WIMSModForgeClient {
     public static void clientInit(FMLClientSetupEvent event) {
-        WIMSModClient.InitClient();
+        WIMSModClient.initClient();
     }
 
 

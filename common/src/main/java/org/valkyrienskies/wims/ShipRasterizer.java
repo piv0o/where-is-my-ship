@@ -1,15 +1,10 @@
 package org.valkyrienskies.wims;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import org.valkyrienskies.core.api.ships.ServerShip;
-
-import java.io.ByteArrayOutputStream;
-import java.util.Objects;
-import java.util.zip.DeflaterOutputStream;
 
 public class ShipRasterizer {
 
@@ -47,7 +42,7 @@ public class ShipRasterizer {
                 for (int y = maxY; y >= minY; y--) {
                     pos.set(x, y, z);
                     BlockState state = level.getBlockState(pos);
-                    if (IsSolidBlock(level, state)) {
+                    if (isSolidBlock(level, state)) {
                         MapColor mc = state.getMapColor(level, pos);
                         rgb = mc.col;
                         shadowMult = 1;
@@ -76,19 +71,19 @@ public class ShipRasterizer {
         return data;
     }
 
-    private static boolean IsSolidBlock(ServerLevel level, int x, int y, int z) {
+    private static boolean isSolidBlock(ServerLevel level, int x, int y, int z) {
         pos.set(x, y, z);
         BlockState state = level.getBlockState(pos);
-        return IsSolidBlock(level, state);
+        return isSolidBlock(level, state);
     }
 
-    private static boolean IsSolidBlock(ServerLevel level, BlockState state) {
+    private static boolean isSolidBlock(ServerLevel level, BlockState state) {
         return !state.isAir() && !state.getFluidState().isSource() && state.isSolidRender(level, pos);
     }
 
     private static boolean isInShadow(ServerLevel level, int x, int y, int z) {
-        return IsSolidBlock(level, x - 1, y + 1, z - 1)
-                || IsSolidBlock(level, x - 1, y + 1, z)
-                || IsSolidBlock(level, x, y + 1, z - 1);
+        return isSolidBlock(level, x - 1, y + 1, z - 1)
+                || isSolidBlock(level, x - 1, y + 1, z)
+                || isSolidBlock(level, x, y + 1, z - 1);
     }
 }

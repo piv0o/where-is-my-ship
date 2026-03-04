@@ -1,6 +1,5 @@
 package org.valkyrienskies.wims.forge;
 
-import com.mojang.logging.LogUtils;
 import dev.architectury.platform.forge.EventBuses;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -12,7 +11,6 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import org.slf4j.Logger;
 import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.forge.client.WIMSModForgeClient;
 
@@ -34,6 +32,7 @@ public class WIMSModForge {
     // end of RegistryObjects
 
     public WIMSModForge() {
+        //noinspection removal
         var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         // Submit our event bus to let Architectury API register our content on the right time.
         EventBuses.registerModEventBus(WIMSMod.MOD_ID, modEventBus);
@@ -44,7 +43,7 @@ public class WIMSModForge {
         }
 
         // Run our common setup.
-        WIMSMod.Init();
+        WIMSMod.init();
     }
 
     // Helper function, taken from VS2.

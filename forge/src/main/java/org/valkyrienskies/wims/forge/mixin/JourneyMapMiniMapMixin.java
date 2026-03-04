@@ -3,8 +3,6 @@ package org.valkyrienskies.wims.forge.mixin;
 import journeymap.client.model.MapState;
 import journeymap.client.properties.MiniMapProperties;
 import journeymap.client.render.map.GridRenderer;
-import journeymap.client.texture.Texture;
-import journeymap.client.ui.fullscreen.Fullscreen;
 import journeymap.client.ui.minimap.MiniMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,11 +12,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.valkyrienskies.wims.WIMSMod;
-import org.valkyrienskies.wims.forge.client.WIMSModForgeClient;
 import org.valkyrienskies.wims.forge.client.plugin.WIMSJourneyMapPlugin;
-
-import java.awt.geom.Point2D;
 
 @Mixin(value = MiniMap.class)
 public abstract class JourneyMapMiniMapMixin {
@@ -43,13 +37,13 @@ public abstract class JourneyMapMiniMapMixin {
             ),
             remap = false
     )
-    public void JourneyMapMiniMapDrawMap(GuiGraphics graphics, boolean preview, CallbackInfo ci) {
+    public void drawMap(GuiGraphics graphics, boolean preview, CallbackInfo ci) {
         var mc = Minecraft.getInstance();
         if (mc.player != null) {
             var centerPoint = gridRenderer.getPixel(mc.player.getX(), mc.player.getZ());
             double x = centerPoint.x;
             double z = centerPoint.y;
-            WIMSJourneyMapPlugin.OnMinimapRender(graphics, (MiniMap) (Object) this, x, z, gridRenderer, miniMapProperties, state);
+            WIMSJourneyMapPlugin.onMinimapRender(graphics, (MiniMap) (Object) this, x, z, gridRenderer, miniMapProperties, state);
         }
     }
 }

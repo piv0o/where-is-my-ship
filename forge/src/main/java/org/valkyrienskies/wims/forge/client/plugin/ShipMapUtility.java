@@ -19,15 +19,12 @@ import org.valkyrienskies.core.internal.world.VsiClientShipWorld;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
-import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.client.ShipClientCoordinates;
 import org.valkyrienskies.wims.client.ShipClientImage;
 
 import java.util.ArrayList;
 
 public class ShipMapUtility {
-
-    public static double zLevel = 0.0D;
 
     public static void drawShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, MapType mapType) {
         PoseStack pose = graphics.pose();
@@ -62,7 +59,6 @@ public class ShipMapUtility {
                 DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
             }
             // donezo
-//            WIMSMod.LogInfo("ship %s end", ship.slug());
             pose.popPose();
         }
     }
@@ -142,7 +138,7 @@ public class ShipMapUtility {
     private static void outlineImage(NativeImage img, boolean[][] solidBlocks) {
         int width = img.getWidth();
         int height = img.getHeight();
-        ArrayList<Integer[]> outLines = new ArrayList<Integer[]>();
+        ArrayList<Integer[]> outLines = new ArrayList<>();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (isPixelTransparent(solidBlocks, x, y) && isNeighborOpaque(solidBlocks, x, y)) {
@@ -172,15 +168,7 @@ public class ShipMapUtility {
                 || !isPixelTransparent(solidBlocks, x, y - 1);
     }
 
-
-//doesn't work unless we have transparency, maybe attempt it but it's not a high priority
-//    private static boolean isNeighborOpaque2(boolean[][] solidBlocks, int x, int y) {
-//        return !isPixelTransparent(solidBlocks, x - 1, y)
-//                || !isPixelTransparent(solidBlocks, x, y - 1);
-//    }
-
-
-    public static void RegisterResource(ShipImagePacket pkt) {
+    public static void registerResource(ShipImagePacket pkt) {
         NativeImage img = convertBytes(pkt);
         var mc = Minecraft.getInstance();
 

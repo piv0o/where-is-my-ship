@@ -35,7 +35,6 @@ import static journeymap.client.api.event.ClientEvent.Type.*;
 
 @journeymap.client.api.ClientPlugin
 public class WIMSJourneyMapPlugin implements IClientPlugin {
-    private IClientAPI jmAPI = null;
 
     // Forge listener reference
     private static WIMSJourneyMapPlugin INSTANCE;
@@ -51,7 +50,9 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         return INSTANCE;
     }
 
-    public static void OnFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties, MapState mapState) {
+    private WIMSForgeClientProperties clientProperties;
+
+    public static void onFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties, MapState mapState) {
         UIState state = screen.getUiState();
         if (state == null) return;
         if (state.ui != Context.UI.Fullscreen) return;
@@ -84,7 +85,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         pose.popPose();
     }
 
-    public static void OnMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties, MapState mapState) {
+    public static void onMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties, MapState mapState) {
         try {
             Minecraft mc = Minecraft.getInstance();
             MultiBufferSource.BufferSource buffer = graphics.bufferSource();
@@ -93,13 +94,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer, mapState.getMapType());
             }
         } catch (Exception e) {
-            WIMSMod.LogError(e.getMessage());
-            WIMSMod.LogError(Arrays.toString(e.getStackTrace()));
+            WIMSMod.logError(e.getMessage());
+            WIMSMod.logError(Arrays.toString(e.getStackTrace()));
         }
 
     }
-
-    private WIMSForgeClientProperties clientProperties;
 
     public WIMSForgeClientProperties getClientProperties() {
         return clientProperties;
@@ -107,9 +106,8 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     @Override
     public void initialize(final IClientAPI jmAPI) {
-        this.jmAPI = jmAPI;
 
-        this.jmAPI.subscribe(getModId(), EnumSet.of(REGISTRY));
+        jmAPI.subscribe(getModId(), EnumSet.of(REGISTRY));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_PACKET_ID, WIMSJourneyMapPlugin::receiveShips);
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_IMAGE_PACKET_ID, WIMSJourneyMapPlugin::receiveImage);
@@ -121,7 +119,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     private static void receiveImage(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
         ShipImagePacket image = ShipImagePacket.fromBuffer(buf);
-        ShipMapUtility.RegisterResource(image);
+        ShipMapUtility.registerResource(image);
     }
 
     @Override
@@ -130,20 +128,17 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     }
 
     @Override
-    public void onEvent(ClientEvent event) {
+    public void onEvent(@NotNull ClientEvent event) {
         try {
-            WIMSMod.LogInfo("OPTIONS 1 %s", event.type);
             if (event.type == ClientEvent.Type.REGISTRY) {
                 RegistryEvent registryEvent = (RegistryEvent) event;
-                WIMSMod.LogInfo("OPTIONS 2 %s", registryEvent.getRegistryType());
 
                 if (registryEvent.getRegistryType() == RegistryEvent.RegistryType.OPTIONS) {
-                    WIMSMod.LogInfo("OPTIONS AAA");
                     this.clientProperties = new WIMSForgeClientProperties();
                 }
             }
         } catch (Throwable t) {
-            WIMSMod.LogError(t.getMessage());
+            WIMSMod.logError(t.getMessage());
         }
     }
 
