@@ -1,5 +1,6 @@
 package org.valkyrienskies.wims.forge.mixin;
 
+import journeymap.client.model.MapState;
 import journeymap.client.properties.MiniMapProperties;
 import journeymap.client.render.map.GridRenderer;
 import journeymap.client.texture.Texture;
@@ -29,6 +30,10 @@ public abstract class JourneyMapMiniMapMixin {
     @Shadow(remap=false)
     private MiniMapProperties miniMapProperties;
 
+    @Final
+    @Shadow(remap=false)
+    private static MapState state;
+
     @Inject(
             method = "drawMap(Lnet/minecraft/client/gui/GuiGraphics;Z)V",
             at = @At(
@@ -44,7 +49,7 @@ public abstract class JourneyMapMiniMapMixin {
             var centerPoint = gridRenderer.getPixel(mc.player.getX(), mc.player.getZ());
             double x = centerPoint.x;
             double z = centerPoint.y;
-            WIMSJourneyMapPlugin.OnMinimapRender(graphics, (MiniMap) (Object) this, x, z, gridRenderer, miniMapProperties);
+            WIMSJourneyMapPlugin.OnMinimapRender(graphics, (MiniMap) (Object) this, x, z, gridRenderer, miniMapProperties, state);
         }
     }
 }

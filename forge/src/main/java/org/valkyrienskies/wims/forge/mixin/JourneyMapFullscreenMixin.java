@@ -5,6 +5,7 @@ package org.valkyrienskies.wims.forge.mixin;
 //import dev.architectury.patchedmixin.staticmixin.spongepowered.asm.mixin.injection.Inject;
 //import dev.architectury.patchedmixin.staticmixin.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import journeymap.client.model.MapState;
 import journeymap.client.properties.FullMapProperties;
 import journeymap.client.render.map.GridRenderer;
 import journeymap.client.ui.fullscreen.Fullscreen;
@@ -36,6 +37,9 @@ public abstract class JourneyMapFullscreenMixin {
     @Shadow(remap = false)
     private FullMapProperties fullMapProperties;
 
+    @Final
+    @Shadow(remap=false)
+    private static MapState state;
 
 
         @Inject(
@@ -53,7 +57,7 @@ public abstract class JourneyMapFullscreenMixin {
             Point2D.Double mouseDrag = getMouseDrag();
             double x = gridRenderer.getCenterBlockX() - (dragging ? mouseDrag.x : 0);
             double z = gridRenderer.getCenterBlockZ() - (dragging ? mouseDrag.y : 0);
-            WIMSJourneyMapPlugin.OnFullscreenRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties);
+            WIMSJourneyMapPlugin.OnFullscreenRender(graphics, (Fullscreen) (Object) this, x, z, mouseX, mouseY, fullMapProperties, state);
         }
 //    @Inject(
 //            method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V",

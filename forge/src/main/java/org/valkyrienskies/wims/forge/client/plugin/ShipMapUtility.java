@@ -1,7 +1,9 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import journeymap.client.model.MapType;
 import journeymap.client.render.draw.DrawUtil;
 import journeymap.client.render.map.GridRenderer;
 import net.minecraft.client.Minecraft;
@@ -17,6 +19,7 @@ import org.valkyrienskies.core.internal.world.VsiClientShipWorld;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
+import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.client.ShipClientCoordinates;
 import org.valkyrienskies.wims.client.ShipClientImage;
 
@@ -26,7 +29,7 @@ public class ShipMapUtility {
 
     public static double zLevel = 0.0D;
 
-    public static void drawShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds) {
+    public static void drawShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, MapType mapType) {
         PoseStack pose = graphics.pose();
         VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
         VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
@@ -42,9 +45,15 @@ public class ShipMapUtility {
             //draw ship image
             pose.rotateAround(coords.getQuaternion(), 0, 0, 0);
             pose.translate(-(shipImage.width() / 2f), -(shipImage.height() / 2f), 0);
+            WIMSMod.LogInfo("isNight? %s", mapType.isNight());
+            if(mapType.isNight()){
+                RenderSystem.setShaderColor(0.2f, 0.2f, 0.2f, 1f);
+            }
             if(getSettings().shipsShouldRender.get() == ShipOptions.ALWAYS || getSettings().shipsShouldRender.get() == ShipOptions.FULLSCREEN_ONLY) {
                 graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
             }
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
             //draw ship slug label
             pose.translate((shipImage.width() / 2f), (shipImage.height() / 2f), 0);
             pose.rotateAround(coords.getReverseQuaternion(), 0, 0, 0);
@@ -59,7 +68,7 @@ public class ShipMapUtility {
         }
     }
 
-    public static void drawMiniShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, GridRenderer gridRenderer, MultiBufferSource.BufferSource buffer) {
+    public static void drawMiniShips(GuiGraphics graphics, Integer mouseX, Integer mouseY, double scale, Rect2i bounds, GridRenderer gridRenderer, MultiBufferSource.BufferSource buffer, MapType mapType) {
         PoseStack pose = graphics.pose();
         VsiClientShipWorld shipWorld = VSGameUtilsKt.getShipObjectWorld(Minecraft.getInstance().level);
         VsiQueryableShipData<ClientShip> allShips = shipWorld.getAllShips();
@@ -73,14 +82,20 @@ public class ShipMapUtility {
             }
             pose.pushPose();
 
+            WIMSMod.LogInfo("isNight? %s", mapType.isNight());
+
             pose.translate((float) mapCoords.x + shipImage.width() / 2f, (float) mapCoords.y + shipImage.height() / 2f, 0);
             pose.scale((float) (scale), (float) (scale), 1);
             pose.mulPose(coords.getQuaternion());
             pose.translate((float) - shipImage.width() / 2f,  - shipImage.height() / 2f, 0);
 
+            if(mapType.isNight()){
+                RenderSystem.setShaderColor(0.2f, 0.2f, 0.2f, 1f);
+            }
             if(getSettings().shipsShouldRender.get() == ShipOptions.ALWAYS || getSettings().shipsShouldRender.get() == ShipOptions.MINIMAP_ONLY) {
                 graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
             }
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             pose.translate((float)  shipImage.width() / 2f,   shipImage.height() / 2f, 10);
             pose.mulPose(coords.getReverseQuaternion());
             pose.scale((float) (1/scale), (float) (1/scale), 1);

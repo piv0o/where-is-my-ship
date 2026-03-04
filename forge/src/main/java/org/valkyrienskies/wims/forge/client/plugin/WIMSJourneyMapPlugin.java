@@ -12,6 +12,7 @@ import java.util.*;
 
 import journeymap.client.api.event.RegistryEvent;
 import journeymap.client.api.util.UIState;
+import journeymap.client.model.MapState;
 import journeymap.client.properties.FullMapProperties;
 import journeymap.client.properties.MiniMapProperties;
 import journeymap.client.render.map.GridRenderer;
@@ -50,7 +51,7 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         return INSTANCE;
     }
 
-    public static void OnFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties) {
+    public static void OnFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties, MapState mapState) {
         UIState state = screen.getUiState();
         if (state == null) return;
         if (state.ui != Context.UI.Fullscreen) return;
@@ -79,18 +80,17 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                 new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
-        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds);
+        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds, mapState.getMapType());
         pose.popPose();
     }
 
-    public static void OnMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties) {
+    public static void OnMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties, MapState mapState) {
         try {
             Minecraft mc = Minecraft.getInstance();
             MultiBufferSource.BufferSource buffer = graphics.bufferSource();
             var scale = Math.pow(2.0D, (double) miniMapProperties.zoomLevel.get());
             if (mc.player != null) {
-//                WIMSMod.LogInfo("Minimap X: %s Z: %s SCALE: %s", x, z, scale);
-                ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer);
+                ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer, mapState.getMapType());
             }
         } catch (Exception e) {
             WIMSMod.LogError(e.getMessage());
