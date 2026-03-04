@@ -5,24 +5,16 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.networking.NetworkManager;
 import journeymap.client.api.IClientPlugin;
 import journeymap.client.api.display.Context;
-import journeymap.client.api.display.ImageOverlay;
 import journeymap.client.api.event.ClientEvent;
 import journeymap.client.api.IClientAPI;
 
-import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STARTED;
-import static journeymap.client.api.event.ClientEvent.Type.MAPPING_STOPPED;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
-
+import journeymap.client.api.event.RegistryEvent;
 import journeymap.client.api.util.UIState;
 import journeymap.client.properties.FullMapProperties;
 import journeymap.client.properties.MiniMapProperties;
-import journeymap.client.render.draw.DrawUtil;
 import journeymap.client.render.map.GridRenderer;
-import journeymap.client.texture.Texture;
 import journeymap.client.ui.fullscreen.Fullscreen;
 import journeymap.client.ui.minimap.MiniMap;
 import net.minecraft.client.Minecraft;
@@ -30,17 +22,18 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.common.MinecraftForge;
+import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
 import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.client.ShipClientImage;
 
+import static journeymap.client.api.event.ClientEvent.Type.*;
+
+
 @journeymap.client.api.ClientPlugin
 public class WIMSJourneyMapPlugin implements IClientPlugin {
-    public float partialTick;
     private IClientAPI jmAPI = null;
 
     // Forge listener reference
@@ -48,8 +41,6 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     public ArrayList<ShipMapPacket> ships;
     public HashMap<String, ShipClientImage> images = new HashMap<>();
-
-    private boolean isMappingStarted;
 
     public WIMSJourneyMapPlugin() {
         INSTANCE = this;
@@ -59,8 +50,6 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
         return INSTANCE;
     }
 
-    // grabbing from JourneyMapFullscreenMixin
-    // heavily based on create train map renderer
     public static void OnFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties) {
         UIState state = screen.getUiState();
         if (state == null) return;
@@ -91,19 +80,16 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                         Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
         ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds);
-        tickShipVelocities();
         pose.popPose();
     }
 
     public static void OnMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties) {
         try {
             Minecraft mc = Minecraft.getInstance();
-            Window window = mc.getWindow();
-            PoseStack pose = graphics.pose();
             MultiBufferSource.BufferSource buffer = graphics.bufferSource();
-            var scale = Math.pow((double)2.0F, (double) miniMapProperties.zoomLevel.get());
+            var scale = Math.pow(2.0D, (double) miniMapProperties.zoomLevel.get());
             if (mc.player != null) {
-                WIMSMod.LogInfo("Minimap X: %s Z: %s SCALE: %s", x, z, scale);
+//                WIMSMod.LogInfo("Minimap X: %s Z: %s SCALE: %s", x, z, scale);
                 ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer);
             }
         } catch (Exception e) {
@@ -113,27 +99,20 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     }
 
-    private static void tickShipVelocities() {
-//        getInstance().ships.replaceAll(ship -> ship.tickVelocity(getInstance().partialTick * (1f/20f)));
-//        getInstance().partialTick = 0;
+    private WIMSForgeClientProperties clientProperties;
+
+    public WIMSForgeClientProperties getClientProperties() {
+        return clientProperties;
     }
 
     @Override
     public void initialize(final IClientAPI jmAPI) {
         this.jmAPI = jmAPI;
 
-        this.jmAPI.subscribe(getModId(), EnumSet.of(MAPPING_STARTED, MAPPING_STOPPED));
+        this.jmAPI.subscribe(getModId(), EnumSet.of(REGISTRY));
+
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_PACKET_ID, WIMSJourneyMapPlugin::receiveShips);
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, WIMSMod.SHIPS_IMAGE_PACKET_ID, WIMSJourneyMapPlugin::receiveImage);
-    }
-
-
-    public static void onClientTick() {
-        if (getInstance().ships == null || !getInstance().isMappingStarted) return;
-        var jmAPI = getInstance().jmAPI;
-        for (ShipMapPacket ship : getInstance().ships) {
-
-        }
     }
 
     private static void receiveShips(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
@@ -153,28 +132,21 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     @Override
     public void onEvent(ClientEvent event) {
         try {
-            switch (event.type) {
-                case MAPPING_STARTED:
-                    onMappingStarted(event);
-                    break;
+            WIMSMod.LogInfo("OPTIONS 1 %s", event.type);
+            if (event.type == ClientEvent.Type.REGISTRY) {
+                RegistryEvent registryEvent = (RegistryEvent) event;
+                WIMSMod.LogInfo("OPTIONS 2 %s", registryEvent.getRegistryType());
 
-                case MAPPING_STOPPED:
-                    onMappingStopped(event);
-                    break;
+                if (registryEvent.getRegistryType() == RegistryEvent.RegistryType.OPTIONS) {
+                    WIMSMod.LogInfo("OPTIONS AAA");
+                    this.clientProperties = new WIMSForgeClientProperties();
+                }
             }
         } catch (Throwable t) {
             WIMSMod.LogError(t.getMessage());
         }
     }
 
-
-    private void onMappingStopped(ClientEvent event) {
-        this.isMappingStarted = false;
-    }
-
-    private void onMappingStarted(ClientEvent event) {
-        this.isMappingStarted = true;
-    }
 }
 
 

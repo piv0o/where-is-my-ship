@@ -1,34 +1,22 @@
 package org.valkyrienskies.wims.forge.client.plugin;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Axis;
-import journeymap.client.cartography.color.RGB;
-import journeymap.client.render.RenderWrapper;
 import journeymap.client.render.draw.DrawUtil;
 import journeymap.client.render.map.GridRenderer;
-import journeymap.client.texture.Texture;
-import journeymap.client.texture.TextureCache;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
 import org.valkyrienskies.core.api.ships.ClientShip;
 import org.valkyrienskies.core.internal.ships.VsiQueryableShipData;
 import org.valkyrienskies.core.internal.world.VsiClientShipWorld;
 import org.valkyrienskies.mod.common.VSGameUtilsKt;
 import org.valkyrienskies.wims.ShipImagePacket;
 import org.valkyrienskies.wims.ShipMapPacket;
-import org.valkyrienskies.wims.WIMSMod;
 import org.valkyrienskies.wims.client.ShipClientCoordinates;
 import org.valkyrienskies.wims.client.ShipClientImage;
 
@@ -46,7 +34,6 @@ public class ShipMapUtility {
             ShipClientImage shipImage = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
             if (shipImage == null) continue;
             pose.pushPose();
-//            WIMSMod.LogInfo("ship %s start", ship.slug());
             var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
 
             //position to world
@@ -55,14 +42,17 @@ public class ShipMapUtility {
             //draw ship image
             pose.rotateAround(coords.getQuaternion(), 0, 0, 0);
             pose.translate(-(shipImage.width() / 2f), -(shipImage.height() / 2f), 0);
-            graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
-
+            if(getSettings().shipsShouldRender.get() == ShipOptions.ALWAYS || getSettings().shipsShouldRender.get() == ShipOptions.FULLSCREEN_ONLY) {
+                graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
+            }
             //draw ship slug label
             pose.translate((shipImage.width() / 2f), (shipImage.height() / 2f), 0);
             pose.rotateAround(coords.getReverseQuaternion(), 0, 0, 0);
             pose.scale((float) (scale), (float) (scale), (float) (scale));
-            DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
 
+            if(getSettings().shipsShouldHaveLabels.get() == ShipOptions.ALWAYS || getSettings().shipsShouldHaveLabels.get() == ShipOptions.FULLSCREEN_ONLY) {
+                DrawUtil.drawLabel(graphics, ship.slug(), 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+            }
             // donezo
 //            WIMSMod.LogInfo("ship %s end", ship.slug());
             pose.popPose();
@@ -88,26 +78,24 @@ public class ShipMapUtility {
             pose.mulPose(coords.getQuaternion());
             pose.translate((float) - shipImage.width() / 2f,  - shipImage.height() / 2f, 0);
 
-            graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
-
+            if(getSettings().shipsShouldRender.get() == ShipOptions.ALWAYS || getSettings().shipsShouldRender.get() == ShipOptions.MINIMAP_ONLY) {
+                graphics.blit(shipImage.resource(), 0, 0, 0, 0, shipImage.width(), shipImage.height(), shipImage.width(), shipImage.height());
+            }
             pose.translate((float)  shipImage.width() / 2f,   shipImage.height() / 2f, 10);
             pose.mulPose(coords.getReverseQuaternion());
             pose.scale((float) (1/scale), (float) (1/scale), 1);
 
-            DrawUtil.drawBatchLabel(graphics.pose(), Component.literal(ship.slug()), buffer, 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+            if(getSettings().shipsShouldHaveLabels.get() == ShipOptions.ALWAYS || getSettings().shipsShouldHaveLabels.get() == ShipOptions.MINIMAP_ONLY){
+                DrawUtil.drawBatchLabel(graphics.pose(), Component.literal(ship.slug()), buffer, 0, 0, DrawUtil.HAlign.Center, DrawUtil.VAlign.Below, 0, 0.5F, 16777215, 1.0F, 1.0F, true);
+            }
 
             pose.popPose();
         }
     }
 
-    public static void addVertexWithUV(PoseStack poseStack, BufferBuilder buff, double x, double y, double z, double u, double v) {
-        addVertexWithUV(poseStack, buff, (float) x, (float) y, (float) z, (float) u, (float) v);
-    }
 
-    public static void addVertexWithUV(PoseStack poseStack, BufferBuilder buff, float x, float y, float z, float u, float v) {
-        PoseStack.Pose entry = poseStack.last();
-        Matrix4f matrix4f = entry.pose();
-        buff.vertex(matrix4f, x, y, z).uv(u, v).endVertex();
+    private static WIMSForgeClientProperties getSettings(){
+        return WIMSJourneyMapPlugin.getInstance().getClientProperties();
     }
 
 
@@ -132,7 +120,9 @@ public class ShipMapUtility {
             }
         }
 
-        outlineImage(img, solidBlocks);
+        if(WIMSJourneyMapPlugin.getInstance().getClientProperties().shipsHaveOutline.get()){
+            outlineImage(img, solidBlocks);
+        }
 
         return img;
     }
@@ -194,6 +184,7 @@ public class ShipMapUtility {
             });
         } else {
             texture = new DynamicTexture(img);
+            //noinspection removal
             resource = new ResourceLocation("wims", "ship/" + pkt.slug());
             mc.getTextureManager().register(resource, texture);
             WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), new ShipClientImage(resource, img.getWidth(), img.getHeight()));
