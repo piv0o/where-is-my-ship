@@ -53,40 +53,49 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     private WIMSForgeClientProperties clientProperties;
 
     public static void onFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties, MapState mapState) {
-        UIState state = screen.getUiState();
-        if (state == null) return;
-        if (state.ui != Context.UI.Fullscreen) return;
-        if (!state.active) return;
+        try {
 
-        Minecraft mc = Minecraft.getInstance();
-        Window window = mc.getWindow();
+            UIState state = screen.getUiState();
+            if (state == null) return;
+            if (state.ui != Context.UI.Fullscreen) return;
+            if (!state.active) return;
+            if (getInstance().ships == null) return;
 
-        double scale = state.blockSize;
+            Minecraft mc = Minecraft.getInstance();
+            Window window = mc.getWindow();
 
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
+            double scale = state.blockSize;
 
-        pose.translate(window.getScreenWidth() / 2.0f, window.getScreenHeight() / 2.0f, 0);
-        pose.scale((float) scale, (float) scale, 1);
-        pose.translate(-x, -z, 0);
+            PoseStack pose = graphics.pose();
+            pose.pushPose();
 
-        float mouseX = mX - screen.width / 2.0f;
-        float mouseY = mY - screen.height / 2.0f;
-        mouseX /= (float) scale;
-        mouseY /= (float) scale;
-        mouseX += (float) x;
-        mouseY += (float) z;
+            pose.translate(window.getScreenWidth() / 2.0f, window.getScreenHeight() / 2.0f, 0);
+            pose.scale((float) scale, (float) scale, 1);
+            pose.translate(-x, -z, 0);
 
-        Rect2i bounds =
-                new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
-                        Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
+            float mouseX = mX - screen.width / 2.0f;
+            float mouseY = mY - screen.height / 2.0f;
+            mouseX /= (float) scale;
+            mouseY /= (float) scale;
+            mouseX += (float) x;
+            mouseY += (float) z;
 
-        ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds, mapState.getMapType());
-        pose.popPose();
+            Rect2i bounds =
+                    new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
+                            Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
+
+            ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds, mapState.getMapType());
+            pose.popPose();
+        } catch (Exception e) {
+            WIMSMod.logError(e.getMessage());
+            WIMSMod.logError(Arrays.toString(e.getStackTrace()));
+        }
     }
 
     public static void onMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties, MapState mapState) {
         try {
+            if (getInstance().ships == null) return;
+
             Minecraft mc = Minecraft.getInstance();
             MultiBufferSource.BufferSource buffer = graphics.bufferSource();
             var scale = Math.pow(2.0D, (double) miniMapProperties.zoomLevel.get());

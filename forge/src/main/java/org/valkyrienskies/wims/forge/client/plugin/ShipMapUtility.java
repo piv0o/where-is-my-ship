@@ -71,17 +71,17 @@ public class ShipMapUtility {
             ShipClientImage shipImage = WIMSJourneyMapPlugin.getInstance().images.get(ship.slug());
             if (shipImage == null) continue;
             var coords = new ShipClientCoordinates(allShips.getById(ship.id()), ship);
-            var mapCoords = gridRenderer.getPixel(coords.position.x, coords.position.z);
+            var mapCoords = gridRenderer.getPixel(coords.position.x+ shipImage.width() / 2f, coords.position.z + shipImage.height() / 2f);
             if (mapCoords == null){
                 continue;
             }
             pose.pushPose();
 
 
-            pose.translate((float) mapCoords.x + shipImage.width() / 2f, (float) mapCoords.y + shipImage.height() / 2f, 0);
+            pose.translate((float) mapCoords.x , (float) mapCoords.y , 0);
             pose.scale((float) (scale), (float) (scale), 1);
             pose.mulPose(coords.getQuaternion());
-            pose.translate((float) - shipImage.width() / 2f,  - shipImage.height() / 2f, 0);
+            pose.translate((float) - shipImage.width(),  - shipImage.height(), 0);
 
             if(mapType.isNight()){
                 RenderSystem.setShaderColor(0.2f, 0.2f, 0.2f, 1f);
@@ -185,7 +185,7 @@ public class ShipMapUtility {
         } else {
             texture = new DynamicTexture(img);
             //noinspection removal
-            resource = new ResourceLocation("wims", "ship/" + pkt.slug());
+            resource = new ResourceLocation("wims", "ship/" + pkt.slug().toLowerCase());
             mc.getTextureManager().register(resource, texture);
             WIMSJourneyMapPlugin.getInstance().images.put(pkt.slug(), new ShipClientImage(resource, img.getWidth(), img.getHeight()));
         }
