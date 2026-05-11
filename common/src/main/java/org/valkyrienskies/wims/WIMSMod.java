@@ -26,22 +26,23 @@ public class WIMSMod {
     private static final HashMap<String, Double> masses = new HashMap<>();
 
 
-    public static void logInfo(String msg, Object... args){
+    public static void logInfo(String msg, Object... args) {
         LOGGER.info(String.format(msg, args));
     }
 
-    public static void logError(String msg){
+    public static void logError(String msg) {
         LOGGER.error(msg);
     }
 
-    public static void logWarn(String msg){
+    public static void logWarn(String msg) {
         LOGGER.warn(msg);
     }
 
     public static int timer = 0;
 
     public static void init() {
-        TickEvent.SERVER_LEVEL_POST.register(WIMSMod::tick);
+
+//        TickEvent.SERVER_LEVEL_POST.register(WIMSMod::tick);
     }
 
 
@@ -57,7 +58,7 @@ public class WIMSMod {
             var AABB = ship.getShipAABB();
             double mass = ship.getInertiaData().getMass();
             if (AABB != null && (timer % (shipCount * 60) == (i * 60) || !masses.containsKey(ship.getSlug()) || masses.get(ship.getSlug()) != mass)) {
-                byte[] data = ShipRasterizer.generateImageData(ship, level);
+                byte[] data = ShipServerRasterizer.generateImageData(ship, level);
                 if (data != null) {
                     image = new ShipImagePacket(
                             ship.getSlug(),

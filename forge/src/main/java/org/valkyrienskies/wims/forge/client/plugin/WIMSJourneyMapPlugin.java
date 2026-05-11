@@ -54,12 +54,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
 
     public static void onFullscreenRender(GuiGraphics graphics, Fullscreen screen, double x, double z, int mX, int mY, FullMapProperties fullMapProperties, MapState mapState) {
         try {
-
             UIState state = screen.getUiState();
             if (state == null) return;
             if (state.ui != Context.UI.Fullscreen) return;
             if (!state.active) return;
-            if (getInstance().ships == null) return;
+//            if (getInstance().ships == null) return;
 
             Minecraft mc = Minecraft.getInstance();
             Window window = mc.getWindow();
@@ -84,7 +83,8 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
                     new Rect2i(Mth.floor(-screen.width / 2.0f / scale + x), Mth.floor(-screen.height / 2.0f / scale + z),
                             Mth.floor(screen.width / scale), Mth.floor(screen.height / scale));
 
-            ShipMapUtility.drawShips(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds, mapState.getMapType());
+            ShipMapUtility.CheckImageUpdates();
+            ShipMapUtility.drawFullscreenShipsClient(graphics, (int) Math.floor(mouseX), (int) Math.floor(mouseY), 1f / scale, bounds, mapState.getMapType());
             pose.popPose();
         } catch (Exception e) {
             WIMSMod.logError(e.getMessage());
@@ -95,11 +95,11 @@ public class WIMSJourneyMapPlugin implements IClientPlugin {
     public static void onMinimapRender(GuiGraphics graphics, MiniMap screen, double x, double z, GridRenderer gridRenderer, MiniMapProperties miniMapProperties, MapState mapState) {
         try {
             if (getInstance().ships == null) return;
-
             Minecraft mc = Minecraft.getInstance();
             MultiBufferSource.BufferSource buffer = graphics.bufferSource();
             var scale = Math.pow(2.0D, (double) miniMapProperties.zoomLevel.get());
             if (mc.player != null) {
+                ShipMapUtility.CheckImageUpdates();
                 ShipMapUtility.drawMiniShips(graphics, null, null, scale, null, gridRenderer, buffer, mapState.getMapType());
             }
         } catch (Exception e) {

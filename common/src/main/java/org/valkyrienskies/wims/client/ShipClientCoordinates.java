@@ -20,11 +20,12 @@ public class ShipClientCoordinates {
             ship.getKinematics().getRotation().getEulerAnglesXYZ(r);
 
             rotation = (float) Math.toRadians(ShipMapPacket.getTrueRotation(r.x, r.y, r.z));
-        } else {
+            mass = 100000;
+        } else if (pkt != null) {
             position = pkt.worldPos();
             rotation = (float) Math.toRadians(pkt.getTrueRotation());
+            mass = pkt.mass();
         }
-        mass = pkt.mass();
     }
 
     public Quaternionf getQuaternion(){

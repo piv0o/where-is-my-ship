@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import org.valkyrienskies.core.api.ships.ServerShip;
 
-public class ShipRasterizer {
+public class ShipServerRasterizer {
 
     private static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
@@ -53,10 +53,6 @@ public class ShipRasterizer {
                         g = (int) (((rgb >> 8) & 0xFF) * shadowMult);
                         b = (int) ((rgb & 0xff) * shadowMult);
                         a = 0xFF;
-//                        if(Objects.equals(ship.getSlug(), "mariachi-voter-nougat")){
-//                            WIMSMod.LogInfo("BLOCK: %s R: %s G: %s B: %s", state.getBlock().toString(), r, g, b);
-//
-//                        }
                         break;
                     }
                 }

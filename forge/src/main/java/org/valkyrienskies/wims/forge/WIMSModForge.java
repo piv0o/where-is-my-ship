@@ -54,7 +54,6 @@ public class WIMSModForge {
     }
 
     public static class Companion {
-        @SuppressWarnings("unused")
         public static void init(FMLCommonSetupEvent event) {
             // Put anything initialized on forge-side here.
         }
